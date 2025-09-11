@@ -1,0 +1,223 @@
+# TenisPro Order Management System - Cursor Rules
+
+## Project Overview
+You are working on TenisPro, an Order Management System for a tennis equipment company. The system includes:
+- Dashboard with order overview
+- Order status tracking system
+- Order creation functionality
+- Order management workflows
+
+## Tech Stack
+- **Framework**: Next.js 14+ with App Router
+- **API**: tRPC with tRPC React Query
+- **Database**: Prisma ORM with Supabase PostgreSQL
+- **Validation**: Zod schemas
+- **UI**: shadcn/ui components with Tailwind CSS
+- **State Management**: React Query (@tanstack/react-query)
+- **Notifications**: OpenAI API for order status notifications
+- **Authentication**: Will be implemented later (skip for now)
+
+## Architecture Patterns
+
+### Router-Service-Repository Pattern
+For each API endpoint, implement the following 3-file structure:
+- `*.router.ts` - tRPC router definitions
+- `*.service.ts` - Business logic layer
+- `*.repository.ts` - Data access layer
+
+Example structure:
+```
+src/server/api/routers/order.router.ts
+src/server/api/services/order.service.ts
+src/server/api/repositories/order.repository.ts
+```
+
+### Result Pattern
+Always implement the Result pattern for error handling:
+```typescript
+type Result<T, E = Error> = {
+  success: true;
+  data: T;
+} | {
+  success: false;
+  error: E;
+};
+```
+
+## Code Standards
+
+### File Organization
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── dashboard/         # Dashboard pages
+│   ├── orders/           # Order management pages
+│   └── layout.tsx        # Root layout
+├── components/           # React components
+│   ├── ui/              # shadcn/ui components
+│   ├── forms/           # Form components
+│   ├── tables/          # Data table components
+│   └── charts/          # Dashboard charts
+├── lib/                 # Utilities and configurations
+│   ├── db.ts           # Prisma client
+│   ├── utils.ts        # General utilities
+│   ├── validations/    # Zod schemas
+│   └── trpc/           # tRPC configuration
+├── server/              # Server-side code
+│   ├── api/
+│   │   ├── routers/    # tRPC routers
+│   │   ├── services/   # Business logic
+│   │   └── repositories/ # Data access
+│   └── db/             # Database utilities
+└── types/              # TypeScript type definitions
+```
+
+### Naming Conventions
+- **Files**: kebab-case (e.g., `order-status.tsx`)
+- **Components**: PascalCase (e.g., `OrderStatusBadge`)
+- **Functions**: camelCase (e.g., `createOrder`)
+- **Constants**: SCREAMING_SNAKE_CASE (e.g., `ORDER_STATUS`)
+- **Types/Interfaces**: PascalCase with descriptive names (e.g., `OrderWithItems`)
+
+### Component Standards
+- Use functional components with TypeScript
+- Implement proper prop types with interfaces
+- Use forwardRef for components that need ref forwarding
+- Prefer composition over inheritance
+- Always export components as default
+
+### tRPC Patterns
+```typescript
+// Router example (no auth for now)
+export const orderRouter = createTRPCRouter({
+  getAll: publicProcedure
+    .input(z.object({ /* input schema */ }))
+    .query(async ({ input, ctx }) => {
+      return await orderService.getAll(input);
+    }),
+});
+
+// Service example
+export class OrderService {
+  constructor(private orderRepository: OrderRepository) {}
+  
+  async getAll(filters: OrderFilters): Promise<Result<Order[]>> {
+    try {
+      const orders = await this.orderRepository.findMany(filters);
+      return { success: true, data: orders };
+    } catch (error) {
+      return { success: false, error };
+    }
+  }
+}
+```
+
+### Database Patterns
+- Use Prisma schema with proper relations
+- Implement soft deletes where appropriate
+- Use database transactions for complex operations
+- Always validate input with Zod schemas
+
+### Form Handling
+- Use React Hook Form with Zod resolvers
+- Implement proper error handling and display
+- Use shadcn/ui form components consistently
+- Validate on both client and server side
+
+### State Management
+- Use React Query for server state
+- Use React state for local component state
+- Implement optimistic updates where appropriate
+- Use proper cache invalidation strategies
+
+## Order Management Specific Rules
+
+### Order Status System
+Implement these order statuses:
+- `PENDING` - Order created, awaiting processing
+- `CONFIRMED` - Order confirmed, ready for fulfillment
+- `PROCESSING` - Order being prepared
+- `SHIPPED` - Order shipped to customer
+- `DELIVERED` - Order delivered successfully
+- `CANCELLED` - Order cancelled
+- `RETURNED` - Order returned by customer
+
+### Data Models
+Core entities should include:
+- **Order**: id, orderNumber, customerId, status, totalAmount, createdAt, updatedAt
+- **OrderItem**: id, orderId, productId, quantity, unitPrice, totalPrice
+- **Customer**: id, name, email, phone, address (internal admin management only)
+- **Product**: id, name, description, price, category, stock
+- **Notification**: id, orderId, type, message, status, createdAt (for OpenAI-powered notifications)
+
+### Notification System
+- Use OpenAI API to generate personalized order status notifications
+- Implement notification triggers for status changes
+- Support both email and SMS notifications
+- Store notification history in the database
+- Implement retry logic for failed notifications
+- Use templates for consistent messaging
+
+### UI/UX Guidelines
+- Use consistent spacing (Tailwind spacing scale)
+- Implement responsive design (mobile-first)
+- Use proper loading states and error boundaries
+- Follow shadcn/ui design patterns
+- Use appropriate icons from Lucide React
+- Implement proper accessibility (ARIA labels, keyboard navigation)
+
+## Development Workflow
+
+### Before Writing Code
+- Always check for linter errors after each change
+- For medium/large tasks (>5 lines), ask clarifying questions before implementation
+- Understand requirements completely before coding
+
+### Code Quality
+- Write TypeScript with strict mode enabled
+- Use ESLint and Prettier for code formatting
+- Implement proper error handling everywhere
+- Write meaningful commit messages
+- Add JSDoc comments for complex functions
+
+### Testing Strategy
+- Write unit tests for services and utilities
+- Implement integration tests for API endpoints
+- Use React Testing Library for component tests
+- Test error scenarios and edge cases
+
+### Performance Considerations
+- Implement proper pagination for large datasets
+- Use React Query caching effectively
+- Optimize database queries with proper indexing
+- Implement lazy loading for components when appropriate
+
+## Environment Setup
+- Use environment variables for sensitive data
+- Implement proper type safety for env vars
+- Use different configurations for dev/staging/prod
+- Document all required environment variables
+
+## Security Guidelines
+- Validate all inputs on both client and server
+- Use HTTPS in production
+- Sanitize data before database operations
+- Secure OpenAI API keys and external service credentials
+- Follow OWASP security guidelines
+- Note: Authentication will be implemented later
+
+## Error Handling
+- Always use the Result pattern for operations that can fail
+- Implement global error boundaries
+- Log errors appropriately (but don't log sensitive data)
+- Provide user-friendly error messages
+- Handle network errors gracefully
+
+## Documentation
+- Document complex business logic
+- Maintain up-to-date API documentation
+- Document deployment procedures
+- Keep README files current
+- Document environment setup procedures
+
+Remember: Always prioritize code quality, maintainability, and user experience. When in doubt, ask for clarification rather than making assumptions.

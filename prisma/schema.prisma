@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Product Type Enum
+enum ProductType {
+  PROFESIONAL
+  ENTRENAMIENTO
+  RECREATIVA
+}
+
+enum OrderStatus {
+  PENDIENTE   
+  PROCESANDO 
+  DESPACHADO  
+  CANCELADO  
+}
+
+// Notification Type Enum for OpenAI-powered notifications
+enum NotificationType {
+  ORDER_STATUS_CHANGE
+  ORDER_CONFIRMATION
+  SHIPPING_UPDATE
+  DELIVERY_CONFIRMATION
+  CANCELLATION_NOTICE
+}
+
+// Product Model
+model Product {
+  id              String      @id @default(cuid())
+  name            ProductType // Using ProductType enum as the product name/identifier
+  description     String?
+  price           Decimal     @db.Decimal(10, 2)
+  availableAmount Int         @map("available_amount")
+  category        String?     // Additional categorization (e.g., "Raquetas", "Pelotas", "Accesorios")
+  brand           String?     // Brand of the product
+  model           String?     // Model/version of the product
+  sku             String?     @unique // Stock Keeping Unit
+  imageUrl        String?     @map("image_url")
+  isActive        Boolean     @default(true) @map("is_active")
+  isDeleted       Boolean     @default(false) @map("is_deleted") // Soft delete
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  orderItems OrderItem[]
+
+  @@map("products")
+  @@index([name])
+  @@index([category])
+  @@index([isActive])
+  @@index([isDeleted])
+}
+
+// Customer Model (Cliente)
+model Customer {
+  id          String  @id @default(cuid())
+  name        String
+  email       String  @unique
+  phone       String?
+  address     String?
+  city        String?
+  state       String?
+  postalCode  String? @map("postal_code")
+  country     String? @default("Colombia")
+  taxId       String? @map("tax_id") 
+  companyName String? @map("company_name") // For business customers
+  isActive    Boolean @default(true) @map("is_active")
+  isDeleted   Boolean @default(false) @map("is_deleted") // Soft delete
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  orders Order[]
+
+  @@map("customers")
+  @@index([email])
+  @@index([isActive])
+  @@index([isDeleted])
+}
+
+// Order Model
+model Order {
+  id           String      @id @default(cuid())
+  orderNumber  String      @unique @map("order_number") // Human-readable order number
+  orderStatus  OrderStatus @map("order_status")
+  customerId   String      @map("customer_id")
+  totalAmount  Decimal     @default(0) @db.Decimal(12, 2) @map("total_amount")
+  subtotal     Decimal     @default(0) @db.Decimal(12, 2)
+  taxAmount    Decimal     @default(0) @db.Decimal(10, 2) @map("tax_amount")
+  shippingCost Decimal     @default(0) @db.Decimal(10, 2) @map("shipping_cost")
+  discount     Decimal     @default(0) @db.Decimal(10, 2)
+  notes        String?     // Internal notes
+  customerNotes String?    @map("customer_notes") // Notes from customer
+  shippingAddress String? @map("shipping_address")
+  billingAddress  String? @map("billing_address")
+  trackingNumber  String? @map("tracking_number")
+  shippedAt      DateTime? @map("shipped_at")
+  deliveredAt    DateTime? @map("delivered_at")
+  cancelledAt    DateTime? @map("cancelled_at")
+  cancellationReason String? @map("cancellation_reason")
+  isDeleted      Boolean   @default(false) @map("is_deleted") // Soft delete
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  customer      Customer       @relation(fields: [customerId], references: [id])
+  orderItems    OrderItem[]
+
+  @@map("orders")
+  @@index([orderNumber])
+  @@index([orderStatus])
+  @@index([customerId])
+  @@index([createdAt])
+  @@index([isDeleted])
+}
+
+// Order Item Model (for multiple products per order)
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String  @map("order_id")
+  productId  String  @map("product_id")
+  quantity   Int
+  unitPrice  Decimal @db.Decimal(10, 2) @map("unit_price")
+  totalPrice Decimal @db.Decimal(12, 2) @map("total_price")
+  discount   Decimal @default(0) @db.Decimal(10, 2)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+  @@index([orderId])
+  @@index([productId])
+}
