@@ -10,7 +10,6 @@ product/
 ├── product.repository.ts # Data access layer with Result Pattern
 ├── product.service.ts    # Business logic layer with Result Pattern
 ├── product.router.ts     # tRPC router with unwrap pattern
-└── README.md            # This file
 ```
 
 ## Key Features
