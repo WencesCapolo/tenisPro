@@ -7,6 +7,7 @@ import { createTRPCRouter } from './trpc';
 import { productRouter } from './product/product.router';
 import { orderRouter } from './order/order.router';
 import { orderItemRouter } from './orderItem/orderItem.router';
+import { customerRouter } from './customer/customer.router';
 
 /**
  * This is the primary router for the tRPC server
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   product: productRouter,
   order: orderRouter,
   orderItem: orderItemRouter,
+  customer: customerRouter,
   // Add other routers here as they are created
   // customer: customerRouter,
 });
