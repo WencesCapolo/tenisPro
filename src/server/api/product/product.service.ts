@@ -4,6 +4,7 @@ import { AppError, createError } from '../../../lib/errors';
 import { Product, ProductType } from '@prisma/client';
 import {
   CreateProductInput,
+  CreateProductData,
   UpdateProductInput,
   ProductListFilters,
   ProductStats
@@ -53,7 +54,7 @@ export class ProductService {
     // Business validation
     const validationResult = this.validateProductData(productInput);
     if (!validationResult.success) {
-      return err(validationResult.error);
+      return err((validationResult as { success: false; error: AppError }).error);
     }
 
     // Check if SKU already exists (if provided)
@@ -68,9 +69,9 @@ export class ProductService {
     }
 
     // Create product
-    const createResult = await this.productRepository.create(productInput);
+    const createResult = await this.productRepository.create(productInput as CreateProductData);
     if (!createResult.success) {
-      return err(createResult.error);
+      return err((createResult as { success: false; error: AppError }).error);
     }
 
     return ok(createResult.data);
@@ -80,28 +81,28 @@ export class ProductService {
     // Check if product exists
     const existingProductResult = await this.getById(id);
     if (!existingProductResult.success) {
-      return err(existingProductResult.error);
+      return err((existingProductResult as { success: false; error: AppError }).error);
     }
 
     // Business validation for updates
     if (productInput.price !== undefined) {
       const priceValidation = this.validatePrice(productInput.price);
       if (!priceValidation.success) {
-        return err(priceValidation.error);
+        return err((priceValidation as { success: false; error: AppError }).error);
       }
     }
 
     if (productInput.availableAmount !== undefined) {
       const stockValidation = this.validateStock(productInput.availableAmount);
       if (!stockValidation.success) {
-        return err(stockValidation.error);
+        return err((stockValidation as { success: false; error: AppError }).error);
       }
     }
 
     // Update product
     const updateResult = await this.productRepository.update(id, productInput);
     if (!updateResult.success) {
-      return err(updateResult.error);
+      return err((updateResult as { success: false; error: AppError }).error);
     }
 
     return ok(updateResult.data);
@@ -111,19 +112,19 @@ export class ProductService {
     // Validate stock amount
     const stockValidation = this.validateStock(newAmount);
     if (!stockValidation.success) {
-      return err(stockValidation.error);
+      return err((stockValidation as { success: false; error: AppError }).error);
     }
 
     // Check if product exists
     const existingProductResult = await this.getById(id);
     if (!existingProductResult.success) {
-      return err(existingProductResult.error);
+      return err((existingProductResult as { success: false; error: AppError }).error);
     }
 
     // Update stock
     const updateResult = await this.productRepository.updateStock(id, newAmount);
     if (!updateResult.success) {
-      return err(updateResult.error);
+      return err((updateResult as { success: false; error: AppError }).error);
     }
 
     return ok(updateResult.data);
@@ -133,7 +134,7 @@ export class ProductService {
     // Get current product
     const productResult = await this.getById(id);
     if (!productResult.success) {
-      return err(productResult.error);
+      return err((productResult as { success: false; error: AppError }).error);
     }
 
     const product = productResult.data;
@@ -159,7 +160,7 @@ export class ProductService {
     // Reserve stock (decrement)
     const reserveResult = await this.productRepository.decrementStock(id, quantity);
     if (!reserveResult.success) {
-      return err(reserveResult.error);
+      return err((reserveResult as { success: false; error: AppError }).error);
     }
 
     return ok(reserveResult.data);
@@ -169,7 +170,7 @@ export class ProductService {
     // Get current product
     const productResult = await this.getById(id);
     if (!productResult.success) {
-      return err(productResult.error);
+      return err((productResult as { success: false; error: AppError }).error);
     }
 
     const product = productResult.data;
@@ -178,7 +179,7 @@ export class ProductService {
     // Restore stock
     const restoreResult = await this.productRepository.updateStock(id, newAmount);
     if (!restoreResult.success) {
-      return err(restoreResult.error);
+      return err((restoreResult as { success: false; error: AppError }).error);
     }
 
     return ok(restoreResult.data);
@@ -187,7 +188,7 @@ export class ProductService {
   async deactivate(id: string): Promise<Result<Product, AppError>> {
     const updateResult = await this.productRepository.update(id, { isActive: false });
     if (!updateResult.success) {
-      return err(updateResult.error);
+      return err((updateResult as { success: false; error: AppError }).error);
     }
 
     return ok(updateResult.data);
@@ -196,7 +197,7 @@ export class ProductService {
   async activate(id: string): Promise<Result<Product, AppError>> {
     const updateResult = await this.productRepository.update(id, { isActive: true });
     if (!updateResult.success) {
-      return err(updateResult.error);
+      return err((updateResult as { success: false; error: AppError }).error);
     }
 
     return ok(updateResult.data);
@@ -206,13 +207,13 @@ export class ProductService {
     // Check if product exists
     const existingProductResult = await this.getById(id);
     if (!existingProductResult.success) {
-      return err(existingProductResult.error);
+      return err((existingProductResult as { success: false; error: AppError }).error);
     }
 
     // Soft delete
     const deleteResult = await this.productRepository.softDelete(id);
     if (!deleteResult.success) {
-      return err(deleteResult.error);
+      return err((deleteResult as { success: false; error: AppError }).error);
     }
 
     return ok(deleteResult.data);
@@ -221,17 +222,17 @@ export class ProductService {
   async getProductStats(): Promise<Result<ProductStats, AppError>> {
     const activeCountResult = await this.productRepository.getActiveProductsCount();
     if (!activeCountResult.success) {
-      return err(activeCountResult.error);
+      return err((activeCountResult as { success: false; error: AppError }).error);
     }
 
     const lowStockResult = await this.productRepository.getLowStockProducts();
     if (!lowStockResult.success) {
-      return err(lowStockResult.error);
+      return err((lowStockResult as { success: false; error: AppError }).error);
     }
 
     const allProductsResult = await this.productRepository.findMany({});
     if (!allProductsResult.success) {
-      return err(allProductsResult.error);
+      return err((allProductsResult as { success: false; error: AppError }).error);
     }
 
     const totalValue = allProductsResult.data.reduce((sum, product) => {
@@ -291,13 +292,13 @@ export class ProductService {
     // Validate price
     const priceValidation = this.validatePrice(productData.price);
     if (!priceValidation.success) {
-      return err(priceValidation.error);
+      return err((priceValidation as { success: false; error: AppError }).error);
     }
 
     // Validate stock
     const stockValidation = this.validateStock(productData.availableAmount);
     if (!stockValidation.success) {
-      return err(stockValidation.error);
+      return err((stockValidation as { success: false; error: AppError }).error);
     }
 
     // Validate required fields

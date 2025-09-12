@@ -75,29 +75,10 @@ export interface ProductFilters {
   inStock?: boolean;
 }
 
-// Service layer interfaces
-export interface CreateProductInput {
-  name: ProductType;
-  description?: string;
-  price: number;
-  availableAmount: number;
-  category?: string;
-  brand?: string;
-  model?: string;
-  sku?: string;
-  imageUrl?: string;
-}
+// Service layer interfaces - inferred from Zod schemas for consistency
+export type CreateProductInput = z.infer<typeof CreateProductSchema>;
 
-export interface UpdateProductInput {
-  description?: string;
-  price?: number;
-  availableAmount?: number;
-  category?: string;
-  brand?: string;
-  model?: string;
-  imageUrl?: string;
-  isActive?: boolean;
-}
+export type UpdateProductInput = z.infer<typeof UpdateProductSchema>;
 
 export interface ProductListFilters {
   name?: ProductType;
@@ -134,37 +115,7 @@ export interface ProductStatsResponse extends ProductStats {
   lastUpdated: string;
 }
 
-// Router input schemas (used for Zod validation)
-export interface CreateProductSchema {
-  name: ProductType;
-  description?: string;
-  price: number;
-  availableAmount: number;
-  category?: string;
-  brand?: string;
-  model?: string;
-  sku?: string;
-  imageUrl?: string;
-}
-
-export interface UpdateProductSchema {
-  description?: string;
-  price?: number;
-  availableAmount?: number;
-  category?: string;
-  brand?: string;
-  model?: string;
-  imageUrl?: string;
-  isActive?: boolean;
-}
-
-export interface ProductFiltersSchema {
-  name?: ProductType;
-  category?: string;
-  brand?: string;
-  isActive?: boolean;
-  inStock?: boolean;
-}
+// Note: Router input types are now inferred from Zod schemas above
 
 // Error-specific types
 export interface ProductError {
