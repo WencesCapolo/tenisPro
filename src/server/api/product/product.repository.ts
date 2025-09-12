@@ -20,7 +20,7 @@ export class ProductRepository {
       return product;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find product by ID', result.error));
+        return err(createError.databaseError('find product by ID', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -63,7 +63,7 @@ export class ProductRepository {
       return products;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find products', result.error));
+        return err(createError.databaseError('find products', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -88,11 +88,12 @@ export class ProductRepository {
       return product;
     }).then(result => {
       if (!result.success) {
+        const error = (result as { success: false; error: Error }).error;
         // Check for unique constraint violations
-        if (result.error.message?.includes('Unique constraint')) {
+        if (error.message?.includes('Unique constraint')) {
           return err(createError.constraintViolation('Product SKU already exists'));
         }
-        return err(createError.databaseError('create product', result.error));
+        return err(createError.databaseError('create product', error));
       }
       return ok(result.data);
     });
@@ -110,7 +111,7 @@ export class ProductRepository {
       return product;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('update product', result.error));
+        return err(createError.databaseError('update product', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -128,7 +129,7 @@ export class ProductRepository {
       return product;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('update product stock', result.error));
+        return err(createError.databaseError('update product stock', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -148,7 +149,7 @@ export class ProductRepository {
       return product;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('decrement product stock', result.error));
+        return err(createError.databaseError('decrement product stock', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -167,7 +168,7 @@ export class ProductRepository {
       return product;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('delete product', result.error));
+        return err(createError.databaseError('delete product', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -184,7 +185,7 @@ export class ProductRepository {
       return count;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('count active products', result.error));
+        return err(createError.databaseError('count active products', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -207,7 +208,7 @@ export class ProductRepository {
       return products;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find low stock products', result.error));
+        return err(createError.databaseError('find low stock products', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });

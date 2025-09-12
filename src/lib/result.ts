@@ -73,7 +73,7 @@ export function chain<T, U, E extends Error>(
   fn: (data: T) => Result<U, E>
 ): Result<U, E> {
   if (!result.success) {
-    return result;
+    return result as Result<U, E>;
   }
   return fn(result.data);
 }
@@ -89,7 +89,7 @@ export function map<T, U, E extends Error>(
   fn: (data: T) => U
 ): Result<U, E> {
   if (!result.success) {
-    return result;
+    return result as Result<U, E>;
   }
   return ok(fn(result.data));
 }
@@ -105,9 +105,9 @@ export function mapError<T, E1 extends Error, E2 extends Error>(
   fn: (error: E1) => E2
 ): Result<T, E2> {
   if (result.success) {
-    return result;
+    return result as Result<T, E2>;
   }
-  return err(fn(result.error));
+  return err(fn((result as { success: false; error: E1 }).error));
 }
 
 /**

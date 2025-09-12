@@ -5,6 +5,7 @@
 
 import { Order, OrderItem, OrderStatus, Customer, Product } from '@prisma/client';
 import { z } from 'zod';
+import { CreateCustomerSchema } from '../customer/customer.types';
 
 // Input validation schemas
 const OrderStatusSchema = z.enum(['PENDIENTE', 'PROCESANDO', 'DESPACHADO', 'CANCELADO']);
@@ -17,18 +18,7 @@ const OrderItemSchema = z.object({
 
 const CreateOrderSchema = z.object({
   customerId: z.string().cuid().optional(), // Optional if creating with inline customer
-  customer: z.object({
-    name: z.string().min(1),
-    email: z.string().email(),
-    phone: z.string().optional(),
-    address: z.string().optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
-    postalCode: z.string().optional(),
-    country: z.string().default('Colombia'),
-    taxId: z.string().optional(),
-    companyName: z.string().optional(),
-  }).optional(), // Optional if using existing customerId
+  customer: CreateCustomerSchema.optional(), // Optional if using existing customerId
   orderItems: z.array(OrderItemSchema).min(1),
   notes: z.string().optional(),
   customerNotes: z.string().optional(),
@@ -145,33 +135,9 @@ export interface CreateCustomerData {
 }
 
 // Service layer interfaces
-export interface CreateOrderInput {
-  customerId?: string;
-  customer?: CreateCustomerData;
-  orderItems: Array<{
-    productId: string;
-    quantity: number;
-    unitPrice?: number;
-  }>;
-  notes?: string;
-  customerNotes?: string;
-  shippingAddress?: string;
-  billingAddress?: string;
-  shippingCost?: number;
-  discount?: number;
-}
+export type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
 
-export interface UpdateOrderInput {
-  orderStatus?: OrderStatus;
-  notes?: string;
-  customerNotes?: string;
-  shippingAddress?: string;
-  billingAddress?: string;
-  trackingNumber?: string;
-  shippingCost?: number;
-  discount?: number;
-  cancellationReason?: string;
-}
+export type UpdateOrderInput = z.infer<typeof UpdateOrderSchema>;
 
 export interface OrderListFilters {
   orderStatus?: OrderStatus;

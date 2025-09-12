@@ -47,46 +47,19 @@ export const CustomerFiltersSchema = z.object({
 // Repository Layer Interfaces
 // ----------------------------
 
-export interface CreateCustomerData {
-  name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
-  taxId?: string;
-  companyName?: string;
-}
+export type CreateCustomerData = z.infer<typeof CreateCustomerSchema>;
 
-export interface UpdateCustomerData {
-  name?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
-  taxId?: string;
-  companyName?: string;
-  isActive?: boolean;
-}
+export type UpdateCustomerData = z.infer<typeof UpdateCustomerSchema>;
 
-export interface CustomerFilters {
-  name?: string;
-  email?: string;
-  isActive?: boolean;
-}
+export type CustomerFilters = z.infer<typeof CustomerFiltersSchema>;
 
 // ----------------------------
 // Service Layer Interfaces
 // ----------------------------
 
-export interface CreateCustomerInput extends CreateCustomerData {}
-export interface UpdateCustomerInput extends UpdateCustomerData {}
-export interface CustomerListFilters extends CustomerFilters {}
+export type CreateCustomerInput = z.infer<typeof CreateCustomerSchema>;
+export type UpdateCustomerInput = z.infer<typeof UpdateCustomerSchema>;
+export type CustomerListFilters = z.infer<typeof CustomerFiltersSchema>;
 
 // ----------------------------
 // Response Types

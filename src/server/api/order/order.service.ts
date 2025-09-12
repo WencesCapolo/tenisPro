@@ -23,6 +23,7 @@ import {
   CreateOrderItemData,
   UpdateOrderData,
 } from './order.types';
+import { CreateCustomerData } from '../customer/customer.types';
 
 export class OrderService {
   constructor(private orderRepository: OrderRepository) {}
@@ -40,7 +41,7 @@ export class OrderService {
       const productResult = await this.orderRepository.findProductById(item.productId);
       
       if (!productResult.success) {
-        return err(productResult.error);
+        return productResult;
       }
 
       const product = productResult.data;
@@ -84,7 +85,7 @@ export class OrderService {
       const productResult = await this.orderRepository.findProductById(item.productId);
       
       if (!productResult.success) {
-        return err(productResult.error);
+        return productResult;
       }
 
       const product = productResult.data;
@@ -133,7 +134,7 @@ export class OrderService {
       const customerResult = await this.orderRepository.findCustomerById(input.customerId);
       
       if (!customerResult.success) {
-        return err(customerResult.error);
+        return customerResult;
       }
 
       if (!customerResult.data) {
@@ -148,7 +149,7 @@ export class OrderService {
       const existingCustomerResult = await this.orderRepository.findCustomerByEmail(input.customer.email);
       
       if (!existingCustomerResult.success) {
-        return err(existingCustomerResult.error);
+        return existingCustomerResult;
       }
 
       if (existingCustomerResult.data) {
@@ -156,10 +157,28 @@ export class OrderService {
       }
 
       // Create new customer
-      const createResult = await this.orderRepository.createCustomer(input.customer);
+      if (!input.customer.name) {
+        return err(createError.validationError('customer.name', 'Customer name is required'));
+      }
+      if (!input.customer.email) {
+        return err(createError.validationError('customer.email', 'Customer email is required'));
+      }
+      
+      const createResult = await this.orderRepository.createCustomer({
+        name: input.customer.name,
+        email: input.customer.email,
+        phone: input.customer.phone,
+        address: input.customer.address,
+        city: input.customer.city,
+        state: input.customer.state,
+        postalCode: input.customer.postalCode,
+        country: input.customer.country,
+        taxId: input.customer.taxId,
+        companyName: input.customer.companyName,
+      });
       
       if (!createResult.success) {
-        return err(createResult.error);
+        return createResult;
       }
 
       return ok(createResult.data);
@@ -175,7 +194,7 @@ export class OrderService {
     // Validate stock
     const stockValidation = await this.validateStock(input.orderItems);
     if (!stockValidation.success) {
-      return err(stockValidation.error);
+      return stockValidation as Result<OrderWithRelations, AppError>;
     }
 
     if (!stockValidation.data.isValid) {
@@ -189,7 +208,7 @@ export class OrderService {
     // Get or create customer
     const customerResult = await this.getOrCreateCustomer(input);
     if (!customerResult.success) {
-      return err(customerResult.error);
+      return customerResult as Result<OrderWithRelations, AppError>;
     }
 
     const customerId = customerResult.data;
@@ -202,7 +221,7 @@ export class OrderService {
     );
     
     if (!calculationResult.success) {
-      return err(calculationResult.error);
+      return calculationResult as Result<OrderWithRelations, AppError>;
     }
 
     const calculation = calculationResult.data;
@@ -210,7 +229,7 @@ export class OrderService {
     // Generate order number
     const orderNumberResult = await this.orderRepository.generateOrderNumber();
     if (!orderNumberResult.success) {
-      return err(orderNumberResult.error);
+      return orderNumberResult as Result<OrderWithRelations, AppError>;
     }
 
     // Prepare order data
@@ -235,7 +254,7 @@ export class OrderService {
     for (const item of input.orderItems) {
       const productResult = await this.orderRepository.findProductById(item.productId);
       if (!productResult.success) {
-        return err(productResult.error);
+        return productResult;
       }
 
       const product = productResult.data!;
@@ -258,7 +277,7 @@ export class OrderService {
     );
 
     if (!createResult.success) {
-      return err(createResult.error);
+      return createResult;
     }
 
     return ok(createResult.data);
@@ -271,7 +290,7 @@ export class OrderService {
     const result = await this.orderRepository.findById(id);
     
     if (!result.success) {
-      return err(result.error);
+      return result;
     }
 
     if (!result.data) {
@@ -288,7 +307,7 @@ export class OrderService {
     const result = await this.orderRepository.findByOrderNumber(orderNumber);
     
     if (!result.success) {
-      return err(result.error);
+      return result;
     }
 
     if (!result.data) {
@@ -315,7 +334,7 @@ export class OrderService {
     );
 
     if (!result.success) {
-      return err(result.error);
+      return result;
     }
 
     return ok(result.data);
@@ -328,7 +347,7 @@ export class OrderService {
     // Get current order
     const currentOrderResult = await this.orderRepository.findById(id);
     if (!currentOrderResult.success) {
-      return err(currentOrderResult.error);
+      return currentOrderResult;
     }
 
     if (!currentOrderResult.data) {
@@ -366,7 +385,7 @@ export class OrderService {
     const result = await this.orderRepository.update(id, updateData);
 
     if (!result.success) {
-      return err(result.error);
+      return result;
     }
 
     return ok(result.data);
@@ -379,7 +398,7 @@ export class OrderService {
     // Get current order
     const currentOrderResult = await this.orderRepository.findById(id);
     if (!currentOrderResult.success) {
-      return err(currentOrderResult.error);
+      return currentOrderResult;
     }
 
     if (!currentOrderResult.data) {
@@ -409,7 +428,7 @@ export class OrderService {
     const result = await this.orderRepository.cancelOrder(id, reason);
 
     if (!result.success) {
-      return err(result.error);
+      return result;
     }
 
     return ok(result.data);
@@ -422,7 +441,7 @@ export class OrderService {
     // Check if order exists and can be deleted
     const orderResult = await this.orderRepository.findById(id);
     if (!orderResult.success) {
-      return err(orderResult.error);
+      return orderResult as Result<void, AppError>;
     }
 
     if (!orderResult.data) {
@@ -442,7 +461,7 @@ export class OrderService {
     const result = await this.orderRepository.delete(id);
 
     if (!result.success) {
-      return err(result.error);
+      return result;
     }
 
     return ok(undefined);
@@ -455,7 +474,7 @@ export class OrderService {
     const result = await this.orderRepository.getStats();
 
     if (!result.success) {
-      return err(result.error);
+      return result;
     }
 
     return ok(result.data);
@@ -471,7 +490,7 @@ export class OrderService {
     );
 
     if (!result.success) {
-      return err(result.error);
+      return result;
     }
 
     return ok(result.data);
@@ -487,7 +506,7 @@ export class OrderService {
     );
 
     if (!result.success) {
-      return err(result.error);
+      return result as Result<OrderWithRelations[], AppError>;
     }
 
     return ok(result.data.data);

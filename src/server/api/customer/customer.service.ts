@@ -16,7 +16,7 @@ export class CustomerService {
   async getById(id: string): Promise<Result<Customer, AppError>> {
     const result = await this.customerRepository.findById(id);
     if (!result.success) {
-      return err(result.error);
+      return err((result as { success: false; error: AppError }).error);
     }
 
     if (!result.data) {
@@ -29,7 +29,7 @@ export class CustomerService {
   async getAll(filters: CustomerListFilters = {}): Promise<Result<Customer[], AppError>> {
     const result = await this.customerRepository.findMany(filters);
     if (!result.success) {
-      return err(result.error);
+      return err((result as { success: false; error: AppError }).error);
     }
     return ok(result.data);
   }
@@ -44,7 +44,7 @@ export class CustomerService {
     // Check for email duplication
     const existingResult = await this.customerRepository.findMany({ email: input.email });
     if (!existingResult.success) {
-      return err(existingResult.error);
+      return err((existingResult as { success: false; error: AppError }).error);
     }
     if (existingResult.data.length > 0) {
       return err(createError.customerEmailExists(input.email));
@@ -52,7 +52,7 @@ export class CustomerService {
 
     const createResult = await this.customerRepository.create(input);
     if (!createResult.success) {
-      return err(createResult.error);
+      return err((createResult as { success: false; error: AppError }).error);
     }
 
     return ok(createResult.data);
@@ -68,14 +68,14 @@ export class CustomerService {
     // Ensure customer exists
     const existing = await this.getById(id);
     if (!existing.success) {
-      return err(existing.error);
+      return err((existing as { success: false; error: AppError }).error);
     }
 
     // Email change duplication check
     if (input.email && input.email !== existing.data.email) {
       const emailCheck = await this.customerRepository.findMany({ email: input.email });
       if (!emailCheck.success) {
-        return err(emailCheck.error);
+        return err((emailCheck as { success: false; error: AppError }).error);
       }
       if (emailCheck.data.length > 0) {
         return err(createError.customerEmailExists(input.email));
@@ -84,7 +84,7 @@ export class CustomerService {
 
     const updateResult = await this.customerRepository.update(id, input);
     if (!updateResult.success) {
-      return err(updateResult.error);
+      return err((updateResult as { success: false; error: AppError }).error);
     }
     return ok(updateResult.data);
   }
@@ -93,12 +93,12 @@ export class CustomerService {
     // Ensure exists
     const existing = await this.getById(id);
     if (!existing.success) {
-      return err(existing.error);
+      return err((existing as { success: false; error: AppError }).error);
     }
 
     const deleteResult = await this.customerRepository.softDelete(id);
     if (!deleteResult.success) {
-      return err(deleteResult.error);
+      return err((deleteResult as { success: false; error: AppError }).error);
     }
     return ok(deleteResult.data);
   }

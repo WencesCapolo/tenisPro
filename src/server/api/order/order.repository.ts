@@ -41,7 +41,7 @@ export class OrderRepository {
       return `${prefix}${sequence}`;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('generate order number', result.error));
+        return err(createError.databaseError('generate order number', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -62,13 +62,14 @@ export class OrderRepository {
       return customer.id;
     }).then(result => {
       if (!result.success) {
+        const error = (result as { success: false; error: Error }).error;
         // Check for unique constraint violation (email)
-        if (result.error instanceof Prisma.PrismaClientKnownRequestError) {
-          if (result.error.code === 'P2002') {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2002') {
             return err(createError.customerEmailExists(customerData.email));
           }
         }
-        return err(createError.databaseError('create customer', result.error));
+        return err(createError.databaseError('create customer', error));
       }
       return ok(result.data);
     });
@@ -85,7 +86,7 @@ export class OrderRepository {
       return customer;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find customer by ID', result.error));
+        return err(createError.databaseError('find customer by ID', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -102,7 +103,7 @@ export class OrderRepository {
       return customer;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find customer by email', result.error));
+        return err(createError.databaseError('find customer by email', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -119,7 +120,7 @@ export class OrderRepository {
       return product;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find product by ID', result.error));
+        return err(createError.databaseError('find product by ID', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -179,7 +180,7 @@ export class OrderRepository {
       });
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('create order', result.error));
+        return err(createError.databaseError('create order', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -204,7 +205,7 @@ export class OrderRepository {
       return order;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find order by ID', result.error));
+        return err(createError.databaseError('find order by ID', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -229,7 +230,7 @@ export class OrderRepository {
       return order;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find order by order number', result.error));
+        return err(createError.databaseError('find order by order number', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -301,7 +302,7 @@ export class OrderRepository {
       };
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find orders', result.error));
+        return err(createError.databaseError('find orders', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -330,12 +331,13 @@ export class OrderRepository {
       return updatedOrder;
     }).then(result => {
       if (!result.success) {
-        if (result.error instanceof Prisma.PrismaClientKnownRequestError) {
-          if (result.error.code === 'P2025') {
+        const error = (result as { success: false; error: Error }).error;
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
             return err(createError.orderNotFound(id));
           }
         }
-        return err(createError.databaseError('update order', result.error));
+        return err(createError.databaseError('update order', error));
       }
       return ok(result.data);
     });
@@ -355,12 +357,13 @@ export class OrderRepository {
       });
     }).then(result => {
       if (!result.success) {
-        if (result.error instanceof Prisma.PrismaClientKnownRequestError) {
-          if (result.error.code === 'P2025') {
+        const error = (result as { success: false; error: Error }).error;
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
             return err(createError.orderNotFound(id));
           }
         }
-        return err(createError.databaseError('delete order', result.error));
+        return err(createError.databaseError('delete order', error));
       }
       return ok(undefined);
     });
@@ -408,7 +411,7 @@ export class OrderRepository {
       };
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('get order stats', result.error));
+        return err(createError.databaseError('get order stats', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -469,7 +472,7 @@ export class OrderRepository {
       });
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('cancel order', result.error));
+        return err(createError.databaseError('cancel order', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });

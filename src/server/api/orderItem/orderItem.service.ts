@@ -27,7 +27,7 @@ export class OrderItemService {
     const productResult = await this.orderItemRepository.findProductById(productId);
     
     if (!productResult.success) {
-      return err(productResult.error);
+      return err((productResult as { success: false; error: AppError }).error);
     }
 
     const product = productResult.data;
@@ -78,7 +78,7 @@ export class OrderItemService {
     // Get product information
     const productResult = await this.orderItemRepository.findProductById(input.productId);
     if (!productResult.success) {
-      return err(productResult.error);
+      return err((productResult as { success: false; error: AppError }).error);
     }
 
     const product = productResult.data;
@@ -92,7 +92,7 @@ export class OrderItemService {
     // Validate stock if quantity is specified
     const stockValidation = await this.validateStock(input.productId, input.quantity);
     if (!stockValidation.success) {
-      return err(stockValidation.error);
+      return err((stockValidation as { success: false; error: AppError }).error);
     }
 
     if (!stockValidation.data.isValid) {
@@ -124,7 +124,7 @@ export class OrderItemService {
     const createResult = await this.orderItemRepository.create(orderItemData);
 
     if (!createResult.success) {
-      return err(createResult.error);
+      return err((createResult as { success: false; error: AppError }).error);
     }
 
     return ok(createResult.data);
@@ -137,7 +137,7 @@ export class OrderItemService {
     const result = await this.orderItemRepository.findById(id);
     
     if (!result.success) {
-      return err(result.error);
+      return err((result as { success: false; error: AppError }).error);
     }
 
     if (!result.data) {
@@ -159,7 +159,7 @@ export class OrderItemService {
     );
 
     if (!result.success) {
-      return err(result.error);
+      return err((result as { success: false; error: AppError }).error);
     }
 
     return ok(result.data);
@@ -171,7 +171,7 @@ export class OrderItemService {
   async canModify(id: string): Promise<Result<boolean, AppError>> {
     const orderItemResult = await this.orderItemRepository.findById(id);
     if (!orderItemResult.success) {
-      return err(orderItemResult.error);
+      return err((orderItemResult as { success: false; error: AppError }).error);
     }
 
     if (!orderItemResult.data) {

@@ -31,12 +31,13 @@ export class OrderItemRepository {
       return orderItem;
     }).then(result => {
       if (!result.success) {
-        if (result.error instanceof Prisma.PrismaClientKnownRequestError) {
-          if (result.error.code === 'P2003') {
+        const error = (result as { success: false; error: Error }).error;
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2003') {
             return err(createError.validationError('orderId or productId', 'Invalid order or product reference'));
           }
         }
-        return err(createError.databaseError('create order item', result.error));
+        return err(createError.databaseError('create order item', error));
       }
       return ok(result.data);
     });
@@ -57,7 +58,7 @@ export class OrderItemRepository {
       return orderItem;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find order item by ID', result.error));
+        return err(createError.databaseError('find order item by ID', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -114,7 +115,7 @@ export class OrderItemRepository {
       };
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find order items', result.error));
+        return err(createError.databaseError('find order items', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -130,12 +131,13 @@ export class OrderItemRepository {
       });
     }).then(result => {
       if (!result.success) {
-        if (result.error instanceof Prisma.PrismaClientKnownRequestError) {
-          if (result.error.code === 'P2025') {
+        const error = (result as { success: false; error: Error }).error;
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2025') {
             return err(createError.validationError('id', 'Order item not found'));
           }
         }
-        return err(createError.databaseError('delete order item', result.error));
+        return err(createError.databaseError('delete order item', error));
       }
       return ok(undefined);
     });
@@ -152,7 +154,7 @@ export class OrderItemRepository {
       return result;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('delete order items by order ID', result.error));
+        return err(createError.databaseError('delete order items by order ID', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -168,7 +170,7 @@ export class OrderItemRepository {
       return product;
     }).then(result => {
       if (!result.success) {
-        return err(createError.databaseError('find product by ID', result.error));
+        return err(createError.databaseError('find product by ID', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });

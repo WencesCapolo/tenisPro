@@ -16,7 +16,7 @@ export class ProductService {
     const result = await this.productRepository.findById(id);
     
     if (!result.success) {
-      return err(result.error);
+      return err((result as { success: false; error: AppError }).error);
     }
 
     if (!result.data) {
@@ -30,7 +30,7 @@ export class ProductService {
     const result = await this.productRepository.findMany(filters);
     
     if (!result.success) {
-      return err(result.error);
+      return err((result as { success: false; error: AppError }).error);
     }
 
     return ok(result.data);
@@ -43,7 +43,7 @@ export class ProductService {
     });
     
     if (!result.success) {
-      return err(result.error);
+      return err((result as { success: false; error: AppError }).error);
     }
 
     return ok(result.data);
@@ -254,7 +254,7 @@ export class ProductService {
     const result = await this.productRepository.getLowStockProducts(threshold);
     
     if (!result.success) {
-      return err(result.error);
+      return err((result as { success: false; error: AppError }).error);
     }
 
     return ok(result.data);
@@ -267,7 +267,7 @@ export class ProductService {
     });
     
     if (!result.success) {
-      return err(result.error);
+      return err((result as { success: false; error: AppError }).error);
     }
 
     return ok(result.data);
@@ -280,7 +280,7 @@ export class ProductService {
     });
     
     if (!result.success) {
-      return err(result.error);
+      return err((result as { success: false; error: AppError }).error);
     }
 
     return ok(result.data);

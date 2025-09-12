@@ -62,13 +62,7 @@ export interface OrderItemFilters {
 }
 
 // Service layer interfaces
-export interface CreateOrderItemInput {
-  orderId: string;
-  productId: string;
-  quantity: number;
-  unitPrice?: number;
-  discount?: number;
-}
+export type CreateOrderItemInput = z.infer<typeof CreateOrderItemSchema>;
 
 export interface OrderItemListFilters {
   orderId?: string;

@@ -17,7 +17,7 @@ import { AppError } from '../../lib/errors';
  */
 export function unwrap<T>(result: Result<T, AppError>): T {
   if (!result.success) {
-    throw convertAppErrorToTRPCError(result.error);
+    throw convertAppErrorToTRPCError((result as { success: false; error: AppError }).error);
   }
   return result.data;
 }

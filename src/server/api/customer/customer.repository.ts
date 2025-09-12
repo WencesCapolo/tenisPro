@@ -17,7 +17,7 @@ export class CustomerRepository {
       return customer;
     }).then((result) => {
       if (!result.success) {
-        return err(createError.databaseError('find customer by ID', result.error));
+        return err(createError.databaseError('find customer by ID', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -36,7 +36,7 @@ export class CustomerRepository {
       return customers;
     }).then((result) => {
       if (!result.success) {
-        return err(createError.databaseError('find customers', result.error));
+        return err(createError.databaseError('find customers', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -44,20 +44,36 @@ export class CustomerRepository {
 
   async create(data: CreateCustomerData): Promise<Result<any, AppError>> {
     return safeAsync(async () => {
-      const customer = await db.customer.create({ data });
+      const customer = await db.customer.create({ 
+        data: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          postalCode: data.postalCode,
+          country: data.country,
+          taxId: data.taxId,
+          companyName: data.companyName,
+          isActive: true,
+          isDeleted: false,
+        }
+      });
       return customer;
     }).then((result) => {
       if (!result.success) {
-        if (result.error instanceof Prisma.PrismaClientKnownRequestError) {
+        const error = (result as { success: false; error: Error }).error;
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (
-            result.error.code === 'P2002' &&
-            Array.isArray((result.error.meta as { target?: string[] }).target) &&
-            (result.error.meta as { target?: string[] }).target!.includes('email')
+            error.code === 'P2002' &&
+            Array.isArray((error.meta as { target?: string[] }).target) &&
+            (error.meta as { target?: string[] }).target!.includes('email')
           ) {
             return err(createError.customerEmailExists(data.email));
           }
         }
-        return err(createError.databaseError('create customer', result.error));
+        return err(createError.databaseError('create customer', error));
       }
       return ok(result.data);
     });
@@ -72,7 +88,7 @@ export class CustomerRepository {
       return customer;
     }).then((result) => {
       if (!result.success) {
-        return err(createError.databaseError('update customer', result.error));
+        return err(createError.databaseError('update customer', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
@@ -87,7 +103,7 @@ export class CustomerRepository {
       return customer;
     }).then((result) => {
       if (!result.success) {
-        return err(createError.databaseError('delete customer', result.error));
+        return err(createError.databaseError('delete customer', (result as { success: false; error: Error }).error));
       }
       return ok(result.data);
     });
