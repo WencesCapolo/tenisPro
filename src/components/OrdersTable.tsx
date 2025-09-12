@@ -19,6 +19,7 @@ import { useState } from "react";
 import { OrderWithRelations } from "@/server/api/order/order.types";
 import { OrderStatus } from "@prisma/client";
 import { format } from "date-fns";
+import { OrderStatusSelect } from "@/components/OrderStatusSelect";
 
 interface OrdersTableProps {
   filters?: {
@@ -69,19 +70,27 @@ const RegularOrderRow = ({ order }: { order: OrderWithRelations }) => {
   }
 
   return (
-    <TableRow className="hover:bg-muted/50 transition-colors">
-      <TableCell className="font-medium">{order.orderNumber}</TableCell>
-      <TableCell>{order.customer.name}</TableCell>
-      <TableCell>{order.customer.email}</TableCell>
-      <TableCell>{format(new Date(order.createdAt), "MMM dd, yyyy")}</TableCell>
+    <TableRow className="hover:bg-muted/20 transition-all duration-200 group border-b border-border/30">
+      <TableCell className="font-semibold text-foreground">{order.orderNumber}</TableCell>
+      <TableCell className="font-medium text-foreground">{order.customer.name}</TableCell>
+      <TableCell className="text-muted-foreground">{order.customer.email}</TableCell>
+      <TableCell className="text-muted-foreground">{format(new Date(order.createdAt), "MMM dd, yyyy")}</TableCell>
       <TableCell>
-        <Badge variant={getStatusVariant(order.orderStatus)}>
-          {getStatusLabel(order.orderStatus)}
-        </Badge>
+        <OrderStatusSelect
+          orderId={order.id}
+          currentStatus={order.orderStatus}
+        />
       </TableCell>
-      <TableCell className="text-right">${Number(order.totalAmount).toFixed(2)}</TableCell>
+      <TableCell className="text-right font-semibold text-foreground">
+        ${Number(order.totalAmount).toFixed(2)}
+      </TableCell>
       <TableCell className="text-right">
-        <Button variant="ghost" asChild>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          asChild
+          className="group-hover:bg-primary/10 group-hover:text-primary transition-colors"
+        >
           <Link href={`/orders/${order.id}`}>
             Ver Detalles
           </Link>
@@ -163,9 +172,10 @@ const ExpandableOrderRow = ({
           <TableCell>{order.customer.email}</TableCell>
           <TableCell>{format(new Date(order.createdAt), "MMM dd, yyyy")}</TableCell>
           <TableCell>
-            <Badge variant={getStatusVariant(order.orderStatus)}>
-              {getStatusLabel(order.orderStatus)}
-            </Badge>
+            <OrderStatusSelect
+              orderId={order.id}
+              currentStatus={order.orderStatus}
+            />
           </TableCell>
           <TableCell className="text-right">${Number(order.totalAmount).toFixed(2)}</TableCell>
           <TableCell className="text-right">
@@ -240,31 +250,31 @@ export function OrdersTable({ filters = {} }: OrdersTableProps) {
   }, {} as Record<string, OrderWithRelations[]>);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
           <Input
-            placeholder="Buscar"
+            placeholder="Buscar..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-10 h-12 rounded-2xl border-border/50 bg-background/50 backdrop-blur-sm shadow-sm focus:shadow-md transition-all duration-200"
           />
         </div>
       </div>
 
       {/* Desktop Table */}
-      <div className="rounded-md border hidden md:block">
+      <div className="rounded-2xl border border-border/50 overflow-hidden bg-card/50 backdrop-blur-sm hidden md:block shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Número de Orden</TableHead>
-              <TableHead>Nombre del Cliente</TableHead>
-              <TableHead>Email del Cliente</TableHead>
-              <TableHead>Fecha de Orden</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="text-right">Detalles</TableHead>
+            <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/50">
+              <TableHead className="font-semibold text-foreground">Número de Orden</TableHead>
+              <TableHead className="font-semibold text-foreground">Nombre del Cliente</TableHead>
+              <TableHead className="font-semibold text-foreground">Email del Cliente</TableHead>
+              <TableHead className="font-semibold text-foreground">Fecha de Orden</TableHead>
+              <TableHead className="font-semibold text-foreground">Estado</TableHead>
+              <TableHead className="text-right font-semibold text-foreground">Total</TableHead>
+              <TableHead className="text-right font-semibold text-foreground">Detalles</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -296,16 +306,16 @@ export function OrdersTable({ filters = {} }: OrdersTableProps) {
       </div>
 
       {/* Mobile Table */}
-      <div className="space-y-2 md:hidden">
-        <p className="text-sm text-foreground text-center">
+      <div className="space-y-4 md:hidden">
+        <p className="text-sm text-muted-foreground text-center">
           Toca cualquier orden para ver detalles
         </p>
-        <div className="rounded-md border">
+        <div className="rounded-2xl border border-border/50 overflow-hidden bg-card/50 backdrop-blur-sm shadow-sm">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="py-4">Orden</TableHead>
-                <TableHead className="py-4">Total</TableHead>
+              <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/50">
+                <TableHead className="py-4 font-semibold text-foreground">Orden</TableHead>
+                <TableHead className="py-4 font-semibold text-foreground">Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -319,16 +329,23 @@ export function OrdersTable({ filters = {} }: OrdersTableProps) {
                 filteredOrders.map((order) => (
                   <TableRow
                     key={order.id}
-                    className="hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => window.location.href = `/orders/${order.id}`}
+                    className="hover:bg-muted/50 transition-colors"
                   >
-                    <TableCell className="font-medium py-6">
+                    <TableCell 
+                      className="font-medium py-6 cursor-pointer"
+                      onClick={() => window.location.href = `/orders/${order.id}`}
+                    >
                       <div>
                         <div className="font-medium">{order.orderNumber}</div>
                         <div className="text-sm text-muted-foreground">{order.customer.name}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="py-6">${Number(order.totalAmount).toFixed(2)}</TableCell>
+                    <TableCell className="py-6">
+                      <OrderStatusSelect
+                        orderId={order.id}
+                        currentStatus={order.orderStatus}
+                      />
+                    </TableCell>
                   </TableRow>
                 ))
               )}

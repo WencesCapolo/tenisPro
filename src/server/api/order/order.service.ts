@@ -17,16 +17,20 @@ import {
   StockValidationResult,
   OrderCalculation,
   StatusTransitionValidation,
-  ORDER_STATUS_TRANSITIONS,
   TAX_RATE,
   CreateOrderData,
   CreateOrderItemData,
   UpdateOrderData,
 } from './order.types';
 import { CreateCustomerData } from '../customer/customer.types';
+import { EmailService } from '../email/email.service';
 
 export class OrderService {
-  constructor(private orderRepository: OrderRepository) {}
+  private emailService: EmailService;
+
+  constructor(private orderRepository: OrderRepository) {
+    this.emailService = new EmailService();
+  }
 
   /**
    * Validate stock availability for order items
@@ -110,18 +114,10 @@ export class OrderService {
   }
 
   /**
-   * Validate status transition
+   * Validate status transition - now allows all transitions
    */
   private validateStatusTransition(currentStatus: OrderStatus, newStatus: OrderStatus): StatusTransitionValidation {
-    const allowedTransitions = ORDER_STATUS_TRANSITIONS[currentStatus];
-    
-    if (!allowedTransitions.includes(newStatus)) {
-      return {
-        isValid: false,
-        error: `Cannot transition from ${currentStatus} to ${newStatus}. Allowed transitions: ${allowedTransitions.join(', ')}`,
-      };
-    }
-
+    // All transitions are now allowed
     return { isValid: true };
   }
 
@@ -386,6 +382,22 @@ export class OrderService {
 
     if (!result.success) {
       return result;
+    }
+
+    // Generate email if status changed to DESPACHADO
+    if (input.orderStatus === 'DESPACHADO' && input.orderStatus !== currentOrder.orderStatus) {
+      const emailResult = await this.emailService.generateEmail({
+        orderNumber: result.data.orderNumber,
+        customerName: result.data.customer.name,
+      });
+
+      // Log email generation result but don't fail the order update if email fails
+      if (emailResult.success) {
+        console.log(`Email generated successfully for order ${result.data.orderNumber}`);
+        console.log(`Email content: ${emailResult.data.content}`);
+      } else {
+        console.warn(`Failed to generate email for order ${result.data.orderNumber}:`, (emailResult as any).error?.message || 'Unknown error');
+      }
     }
 
     return ok(result.data);

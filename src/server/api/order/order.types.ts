@@ -56,7 +56,7 @@ const OrderFiltersSchema = z.object({
 
 const PaginationSchema = z.object({
   page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
+  limit: z.number().int().min(1).max(10000).default(10), // Increased limit for dashboard stats
 });
 
 // Export schemas for use in router
@@ -212,12 +212,13 @@ export interface StatusTransitionValidation {
   error?: string;
 }
 
-// Order status transition rules
+// Order status transition rules - All transitions are now allowed
+// Keeping the export for backward compatibility but not enforcing restrictions
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  PENDIENTE: ['PROCESANDO', 'CANCELADO'],
-  PROCESANDO: ['DESPACHADO', 'CANCELADO'],
-  DESPACHADO: ['CANCELADO'], // Can still be cancelled if not delivered
-  CANCELADO: [], // Terminal state
+  PENDIENTE: ['PROCESANDO', 'DESPACHADO', 'CANCELADO'],
+  PROCESANDO: ['PENDIENTE', 'DESPACHADO', 'CANCELADO'],
+  DESPACHADO: ['PENDIENTE', 'PROCESANDO', 'CANCELADO'],
+  CANCELADO: ['PENDIENTE', 'PROCESANDO', 'DESPACHADO'],
 };
 
 // Tax configuration (can be moved to environment variables later)

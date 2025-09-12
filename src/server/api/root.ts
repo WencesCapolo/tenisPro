@@ -8,6 +8,7 @@ import { productRouter } from './product/product.router';
 import { orderRouter } from './order/order.router';
 import { orderItemRouter } from './orderItem/orderItem.router';
 import { customerRouter } from './customer/customer.router';
+import { emailRouter } from './email/email.router';
 
 /**
  * This is the primary router for the tRPC server
@@ -18,8 +19,8 @@ export const appRouter = createTRPCRouter({
   order: orderRouter,
   orderItem: orderItemRouter,
   customer: customerRouter,
+  email: emailRouter,
   // Add other routers here as they are created
-  // customer: customerRouter,
 });
 
 // Export type definition of API
