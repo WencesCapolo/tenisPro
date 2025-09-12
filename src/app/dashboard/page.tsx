@@ -16,11 +16,8 @@ export default function DashboardPage() {
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
               <div className="flex flex-col space-y-1.5 p-6">
                 <h3 className="text-2xl font-semibold leading-none tracking-tight">
-                  Recent Orders
+                  Ordenes Recientes
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  You have processed {5} orders this month.
-                </p>
               </div>
               <div className="p-6 pt-0">
                 <OrdersTable />

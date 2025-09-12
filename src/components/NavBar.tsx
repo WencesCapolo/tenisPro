@@ -13,7 +13,7 @@ const navItems = [
   },
   {
     title: "Nueva Orden",
-    href: "/orders/new",
+    href: "/nueva-orden",
   },
   {
     title: "Nuevo Cliente",
