@@ -1,16 +1,24 @@
+"use client";
 import {
   Table,
   TableBody,
   TableCaption,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { api } from "@/lib/api"
-import { OrderWithRelations } from "@/server/api/order/order.types"
-import { OrderStatus } from "@prisma/client"
-import { format } from "date-fns"
+} from "@/components/ui/table";
+import { api } from "@/lib/api";
+import { Badge } from "@/components/ui/badge";
+import { Search, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useState } from "react";
+import { OrderWithRelations } from "@/server/api/order/order.types";
+import { OrderStatus } from "@prisma/client";
+import { format } from "date-fns";
 
 interface OrdersTableProps {
   filters?: {
@@ -28,85 +36,24 @@ interface OrdersTableProps {
   }
 }
 
-export function OrdersTable({ filters = {} }: OrdersTableProps) {
-  const { page = 1, limit = 10, ...otherFilters } = filters
-  
-  const { data, isLoading, error } = api.order.getAll.useQuery({
-    page,
-    limit,
-    ...otherFilters,
-  })
-
-  if (isLoading) {
-    return (
-      <div className="w-full">
-        <div className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Cargando ordenes...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="w-full">
-        <div className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <p className="text-destructive mb-2">Error cargando ordenes</p>
-            <p className="text-sm text-muted-foreground">{error.message}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const orders = data?.data || []
-
-  if (orders.length === 0) {
-    return (
-      <div className="w-full">
-        <Table>
-          <TableCaption>No se encontraron ordenes.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[120px]">Número de orden</TableHead>
-              <TableHead>Nombre del cliente</TableHead>
-              <TableHead>Fecha de orden</TableHead>
-              <TableHead>Estado</TableHead> 
-              <TableHead className="text-right">Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                No se encontraron ordenes
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
-    )
-  }
-
-  const getStatusColor = (status: string) => {
+// Component for a regular order row
+const RegularOrderRow = ({ order }: { order: OrderWithRelations }) => {
+  const getStatusVariant = (status: OrderStatus) => {
     switch (status) {
       case "DESPACHADO":
-        return "bg-green-100 text-green-800"
+        return "success"
       case "PENDIENTE":
-        return "bg-yellow-100 text-yellow-800"
+        return "secondary"
       case "PROCESANDO":
-        return "bg-blue-100 text-blue-800"
+        return "default"
       case "CANCELADO":
-        return "bg-red-100 text-red-800"
+        return "destructive"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "outline"
     }
   }
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: OrderStatus) => {
     switch (status) {
       case "PENDIENTE":
         return "Pendiente"
@@ -122,44 +69,273 @@ export function OrdersTable({ filters = {} }: OrdersTableProps) {
   }
 
   return (
-    <div className="w-full">
-      <Table>
-        <TableCaption>
-          Mostrando {orders.length} de {data?.pagination?.total || 0} ordenes
-        </TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[120px]">Número de orden</TableHead>
-            <TableHead>Nombre del cliente</TableHead>
-            <TableHead>Fecha de orden</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead className="text-right">Total</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {orders.map((order: OrderWithRelations) => (
-            <TableRow key={order.id}>
-              <TableCell className="font-medium">{order.orderNumber}</TableCell>
-              <TableCell>{order.customer.name}</TableCell>
-              <TableCell>
-                {format(new Date(order.createdAt), "MMM dd, yyyy")}
-              </TableCell>
-              <TableCell>
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                    order.orderStatus
-                  )}`}
-                >
-                  {getStatusLabel(order.orderStatus)}
-                </span>
-              </TableCell>
-              <TableCell className="text-right">
-                ${order.totalAmount.toFixed(2)}
+    <TableRow className="hover:bg-muted/50 transition-colors">
+      <TableCell className="font-medium">{order.orderNumber}</TableCell>
+      <TableCell>{order.customer.name}</TableCell>
+      <TableCell>{order.customer.email}</TableCell>
+      <TableCell>{format(new Date(order.createdAt), "MMM dd, yyyy")}</TableCell>
+      <TableCell>
+        <Badge variant={getStatusVariant(order.orderStatus)}>
+          {getStatusLabel(order.orderStatus)}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-right">${Number(order.totalAmount).toFixed(2)}</TableCell>
+      <TableCell className="text-right">
+        <Button variant="ghost" asChild>
+          <Link href={`/orders/${order.id}`}>
+            Ver Detalles
+          </Link>
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+};
+
+// Component for an expandable order row (for grouping by customer)
+const ExpandableOrderRow = ({ 
+  customerName, 
+  orders 
+}: { 
+  customerName: string; 
+  orders: OrderWithRelations[]; 
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  if (orders.length === 1 && orders[0]) {
+    return <RegularOrderRow order={orders[0]} />;
+  }
+
+  const totalAmount = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
+
+  const getStatusVariant = (status: OrderStatus) => {
+    switch (status) {
+      case "DESPACHADO":
+        return "success"
+      case "PENDIENTE":
+        return "secondary"
+      case "PROCESANDO":
+        return "default"
+      case "CANCELADO":
+        return "destructive"
+      default:
+        return "outline"
+    }
+  }
+
+  const getStatusLabel = (status: OrderStatus) => {
+    switch (status) {
+      case "PENDIENTE":
+        return "Pendiente"
+      case "PROCESANDO":
+        return "Procesando"
+      case "DESPACHADO":
+        return "Despachado"
+      case "CANCELADO":
+        return "Cancelado"
+      default:
+        return status
+    }
+  }
+
+  return (
+    <>
+      <TableRow 
+        className="cursor-pointer hover:bg-muted/50"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <TableCell colSpan={6}>
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{customerName}</span>
+            <Badge variant="outline" className="ml-2">
+              {orders.length} {orders.length === 1 ? "orden" : "ordenes"}
+            </Badge>
+            <ChevronRight 
+              className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+            />
+          </div>
+        </TableCell>
+        <TableCell className="text-right">${totalAmount.toFixed(2)}</TableCell>
+      </TableRow>
+      {isExpanded && orders.map(order => (
+        <TableRow key={order.id} className="bg-muted/30">
+          <TableCell className="pl-8">{order.orderNumber}</TableCell>
+          <TableCell>{order.customer.name}</TableCell>
+          <TableCell>{order.customer.email}</TableCell>
+          <TableCell>{format(new Date(order.createdAt), "MMM dd, yyyy")}</TableCell>
+          <TableCell>
+            <Badge variant={getStatusVariant(order.orderStatus)}>
+              {getStatusLabel(order.orderStatus)}
+            </Badge>
+          </TableCell>
+          <TableCell className="text-right">${Number(order.totalAmount).toFixed(2)}</TableCell>
+          <TableCell className="text-right">
+            <Button variant="ghost" asChild>
+              <Link href={`/orders/${order.id}`}>
+                Ver Detalles
+              </Link>
+            </Button>
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+};
+
+export function OrdersTable({ filters = {} }: OrdersTableProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const { page = 1, limit = 10, ...otherFilters } = filters;
+  
+  const { data, isLoading, error } = api.order.getAll.useQuery({
+    page,
+    limit,
+    ...otherFilters,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="w-full">
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Cargando ordenes...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full">
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <p className="text-destructive mb-2">Error cargando ordenes</p>
+            <p className="text-sm text-muted-foreground">{error.message}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const orders = data?.data || [];
+
+  // Filter orders based on search query
+  const filteredOrders = orders.filter((order) => {
+    const searchLower = searchQuery.toLowerCase();
+    return [
+      order.orderNumber,
+      order.customer.name,
+      order.customer.email,
+      order.orderStatus,
+      order.totalAmount.toString()
+    ].some((value) => (value ?? "").toLowerCase().includes(searchLower));
+  });
+
+  // Group orders by customer name for expandable functionality
+  const groupedOrders = filteredOrders.reduce((acc, order) => {
+    const customerName = order.customer.name;
+    acc[customerName] ??= [];
+    acc[customerName]?.push(order);
+    return acc;
+  }, {} as Record<string, OrderWithRelations[]>);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
+          <Input
+            placeholder="Buscar"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      </div>
+
+      {/* Desktop Table */}
+      <div className="rounded-md border hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Número de Orden</TableHead>
+              <TableHead>Nombre del Cliente</TableHead>
+              <TableHead>Email del Cliente</TableHead>
+              <TableHead>Fecha de Orden</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+              <TableHead className="text-right">Detalles</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {!groupedOrders || Object.keys(groupedOrders).length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center">
+                  No se encontraron ordenes.
+                </TableCell>
+              </TableRow>
+            ) : (
+              Object.entries(groupedOrders).map(([customerName, customerOrders]) => (
+                <ExpandableOrderRow 
+                  key={customerName} 
+                  customerName={customerName} 
+                  orders={customerOrders}
+                />
+              ))
+            )}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={6}>Total de Ordenes:</TableCell>
+              <TableCell className="text-right font-medium">
+                {filteredOrders.length}
               </TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableFooter>
+        </Table>
+      </div>
+
+      {/* Mobile Table */}
+      <div className="space-y-2 md:hidden">
+        <p className="text-sm text-foreground text-center">
+          Toca cualquier orden para ver detalles
+        </p>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="py-4">Orden</TableHead>
+                <TableHead className="py-4">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredOrders.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="h-24 text-center">
+                    No se encontraron ordenes.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredOrders.map((order) => (
+                  <TableRow
+                    key={order.id}
+                    className="hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => window.location.href = `/orders/${order.id}`}
+                  >
+                    <TableCell className="font-medium py-6">
+                      <div>
+                        <div className="font-medium">{order.orderNumber}</div>
+                        <div className="text-sm text-muted-foreground">{order.customer.name}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-6">${Number(order.totalAmount).toFixed(2)}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
