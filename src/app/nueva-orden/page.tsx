@@ -1,4 +1,4 @@
-"use client"
+  "use client"
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
@@ -63,6 +63,8 @@ export default function NuevaOrdenPage() {
   const [submitError, setSubmitError] = useState<string>("")
   // tRPC queries and mutations
   const { data: customers } = api.customer.getAll.useQuery()
+  // Fetch active products to resolve productId when creating the order
+  const { data: products } = api.product.getActive.useQuery()
   const createOrderMutation = api.order.create.useMutation()
   
   // Form setup
@@ -136,9 +138,20 @@ export default function NuevaOrdenPage() {
       return
     }
 
-    // Validate that all order items have valid data
-    const validOrderItems = data.orderItems.filter(item => {
-      return item.productName && item.category && item.quantity > 0
+    // Validate that all order items have valid data and map to product IDs
+    const validOrderItems = data.orderItems.flatMap(item => {
+      if (!item.productName || !item.category || item.quantity <= 0) return []
+
+      // Find matching product from the fetched list
+      const matchedProduct = products?.find(p => p.name === item.productName && p.category === item.category)
+      if (!matchedProduct) {
+        return [] // Skip if no product found – could also surface an error
+      }
+
+      return [{
+        productId: matchedProduct.id,
+        quantity: item.quantity,
+      }]
     })
     
     if (validOrderItems.length === 0) {

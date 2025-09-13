@@ -11,13 +11,13 @@ import { CreateCustomerSchema } from '../customer/customer.types';
 const OrderStatusSchema = z.enum(['PENDIENTE', 'PROCESANDO', 'DESPACHADO', 'CANCELADO']);
 
 const OrderItemSchema = z.object({
-  productId: z.string().cuid(),
+  productId: z.string().uuid(),
   quantity: z.number().int().min(1),
   unitPrice: z.number().min(0).optional(), // Optional, will be fetched from product if not provided
 });
 
 const CreateOrderSchema = z.object({
-  customerId: z.string().cuid().optional(), // Optional if creating with inline customer
+  customerId: z.string().uuid().optional(), // Optional if creating with inline customer
   customer: CreateCustomerSchema.optional(), // Optional if using existing customerId
   orderItems: z.array(OrderItemSchema).min(1),
   notes: z.string().optional(),
@@ -44,9 +44,9 @@ const UpdateOrderSchema = z.object({
 
 const OrderFiltersSchema = z.object({
   orderStatus: OrderStatusSchema.optional(),
-  customerId: z.string().cuid().optional(),
+  customerId: z.string().uuid().optional(),
   customerEmail: z.string().email().optional(),
-  productId: z.string().cuid().optional(),
+  productId: z.string().uuid().optional(),
   orderNumber: z.string().optional(),
   dateFrom: z.string().datetime().optional(),
   dateTo: z.string().datetime().optional(),
