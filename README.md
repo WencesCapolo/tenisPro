@@ -25,7 +25,26 @@ The application features a clean, intuitive interface that allows teams to manag
 - **📱 Responsive Design** - Mobile-first approach with modern UI components
 - **🔍 Advanced Filtering** - Powerful search and filtering capabilities
 - **📈 Reporting** - Detailed order analytics and business insights
-- **🎨 Dark/Light Mode** - Theme switching with persistent preferences
+- **🏆 Creative Detail Badge** - Special golden badge for premium "PELOTA PROFESIONAL" orders
+
+## 🏆 Creative Detail Feature
+
+The **"Detalle creativo"** is a special visual indicator that highlights premium orders in the system. When an order meets specific criteria, it displays a distinctive golden badge to emphasize its importance and premium nature.
+
+### When the Badge Appears
+
+The Creative Detail badge is automatically displayed when an order has:
+- **Product Name**: `PELOTA`
+- **Product Type**: `PROFESIONAL`
+
+### Visual Design
+
+The badge features:
+- **Golden color scheme** to convey premium quality
+- **Eye-catching design** that stands out in the order list
+- **Consistent styling** that maintains the application's visual hierarchy
+
+This feature helps users quickly identify high-value professional tennis ball orders, ensuring they receive the attention and priority handling they deserve in the order management workflow.
 
 ## 🛠️ Tech Stack
 
@@ -331,13 +350,9 @@ await updateStatus.mutateAsync({
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 👥 Authors
 
-**TenisPro Team** - *Initial work and development*
+**Wemceslao Capolo** - *Initial work and development*
 
 ---
 
