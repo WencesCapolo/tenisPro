@@ -69,11 +69,21 @@ const RegularOrderRow = ({ order }: { order: OrderWithRelations }) => {
     }
   }
 
+  const getProductSummary = (orderItems: typeof order.orderItems) => {
+    if (orderItems.length === 0) return "Sin productos";
+    if (orderItems.length === 1) {
+      const item = orderItems[0]!;
+      return `${item.product.name} (${item.quantity})`;
+    }
+    return `${orderItems.length} productos`;
+  }
+
   return (
     <TableRow className="hover:bg-muted/20 transition-all duration-200 group border-b border-border/30">
       <TableCell className="font-semibold text-foreground">{order.orderNumber}</TableCell>
       <TableCell className="font-medium text-foreground">{order.customer.name}</TableCell>
       <TableCell className="text-muted-foreground">{order.customer.email}</TableCell>
+      <TableCell className="text-muted-foreground">{getProductSummary(order.orderItems)}</TableCell>
       <TableCell className="text-muted-foreground">{format(new Date(order.createdAt), "MMM dd, yyyy")}</TableCell>
       <TableCell>
         <OrderStatusSelect
@@ -91,7 +101,7 @@ const RegularOrderRow = ({ order }: { order: OrderWithRelations }) => {
           asChild
           className="group-hover:bg-primary/10 group-hover:text-primary transition-colors"
         >
-          <Link href={`/orders/${order.id}`}>
+          <Link href={`/ordenes/${order.orderNumber}`}>
             Ver Detalles
           </Link>
         </Button>
@@ -152,7 +162,7 @@ const ExpandableOrderRow = ({
         className="cursor-pointer hover:bg-muted/50"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <TableCell colSpan={6}>
+        <TableCell colSpan={7}>
           <div className="flex items-center gap-2">
             <span className="font-medium">{customerName}</span>
             <Badge variant="outline" className="ml-2">
@@ -165,28 +175,40 @@ const ExpandableOrderRow = ({
         </TableCell>
         <TableCell className="text-right">${totalAmount.toFixed(2)}</TableCell>
       </TableRow>
-      {isExpanded && orders.map(order => (
-        <TableRow key={order.id} className="bg-muted/30">
-          <TableCell className="pl-8">{order.orderNumber}</TableCell>
-          <TableCell>{order.customer.name}</TableCell>
-          <TableCell>{order.customer.email}</TableCell>
-          <TableCell>{format(new Date(order.createdAt), "MMM dd, yyyy")}</TableCell>
-          <TableCell>
-            <OrderStatusSelect
-              orderId={order.id}
-              currentStatus={order.orderStatus}
-            />
-          </TableCell>
-          <TableCell className="text-right">${Number(order.totalAmount).toFixed(2)}</TableCell>
-          <TableCell className="text-right">
-            <Button variant="ghost" asChild>
-              <Link href={`/orders/${order.id}`}>
-                Ver Detalles
-              </Link>
-            </Button>
-          </TableCell>
-        </TableRow>
-      ))}
+      {isExpanded && orders.map(order => {
+        const getProductSummary = (orderItems: typeof order.orderItems) => {
+          if (orderItems.length === 0) return "Sin productos";
+          if (orderItems.length === 1) {
+            const item = orderItems[0]!;
+            return `${item.product.name} (${item.quantity})`;
+          }
+          return `${orderItems.length} productos`;
+        };
+
+        return (
+          <TableRow key={order.id} className="bg-muted/30">
+            <TableCell className="pl-8">{order.orderNumber}</TableCell>
+            <TableCell>{order.customer.name}</TableCell>
+            <TableCell>{order.customer.email}</TableCell>
+            <TableCell>{getProductSummary(order.orderItems)}</TableCell>
+            <TableCell>{format(new Date(order.createdAt), "MMM dd, yyyy")}</TableCell>
+            <TableCell>
+              <OrderStatusSelect
+                orderId={order.id}
+                currentStatus={order.orderStatus}
+              />
+            </TableCell>
+            <TableCell className="text-right">${Number(order.totalAmount).toFixed(2)}</TableCell>
+            <TableCell className="text-right">
+              <Button variant="ghost" asChild>
+                <Link href={`/ordenes/${order.orderNumber}`}>
+                  Ver Detalles
+                </Link>
+              </Button>
+            </TableCell>
+          </TableRow>
+        );
+      })}
     </>
   );
 };
@@ -271,6 +293,7 @@ export function OrdersTable({ filters = {} }: OrdersTableProps) {
               <TableHead className="font-semibold text-foreground">Número de Orden</TableHead>
               <TableHead className="font-semibold text-foreground">Nombre del Cliente</TableHead>
               <TableHead className="font-semibold text-foreground">Email del Cliente</TableHead>
+              <TableHead className="font-semibold text-foreground">Productos</TableHead>
               <TableHead className="font-semibold text-foreground">Fecha de Orden</TableHead>
               <TableHead className="font-semibold text-foreground">Estado</TableHead>
               <TableHead className="text-right font-semibold text-foreground">Total</TableHead>
@@ -280,7 +303,7 @@ export function OrdersTable({ filters = {} }: OrdersTableProps) {
           <TableBody>
             {!groupedOrders || Object.keys(groupedOrders).length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   No se encontraron ordenes.
                 </TableCell>
               </TableRow>
@@ -296,7 +319,7 @@ export function OrdersTable({ filters = {} }: OrdersTableProps) {
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={6}>Total de Ordenes:</TableCell>
+              <TableCell colSpan={7}>Total de Ordenes:</TableCell>
               <TableCell className="text-right font-medium">
                 {filteredOrders.length}
               </TableCell>
@@ -333,7 +356,7 @@ export function OrdersTable({ filters = {} }: OrdersTableProps) {
                   >
                     <TableCell 
                       className="font-medium py-6 cursor-pointer"
-                      onClick={() => window.location.href = `/orders/${order.id}`}
+                      onClick={() => window.location.href = `/ordenes/${order.orderNumber}`}
                     >
                       <div>
                         <div className="font-medium">{order.orderNumber}</div>

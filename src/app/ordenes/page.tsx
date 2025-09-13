@@ -49,7 +49,7 @@ export default function OrdenesPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <OrdersTable />
+            <OrdersTable filters={{ limit: 50 }} />
           </CardContent>
         </Card>
       </section>

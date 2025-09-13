@@ -45,7 +45,7 @@ export function NavBar() {
 
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar */} 
       <aside className="fixed left-0 top-0 z-40 h-screen w-72 bg-gray-200 border-r border-gray-300 hidden md:block shadow-lg rounded-r-3xl">
         <div className="flex h-full flex-col">
           {/* Logo/Brand */}

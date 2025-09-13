@@ -1,7 +1,7 @@
 import { db } from '../../../lib/db';
 import { Result, ok, err, safeAsync } from '../../../lib/result';
 import { AppError, createError } from '../../../lib/errors';
-import { Product, ProductType } from '@prisma/client';
+import { Product, ProductType, ProductName } from '@prisma/client';
 import {
   CreateProductData,
   UpdateProductData,

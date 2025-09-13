@@ -86,7 +86,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <OrdersTable />
+            <OrdersTable filters={{ limit: 5 }} />
           </CardContent>
         </Card>
       </section>

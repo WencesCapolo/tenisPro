@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Plus, Trash2, Loader2 } from "lucide-react"
+import { Plus, Trash2, Loader2, Filter } from "lucide-react"
 
 import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
@@ -35,7 +35,12 @@ const orderFormSchema = z.object({
   
   // Order items (required - at least one item)
   orderItems: z.array(z.object({
-    productId: z.string().min(1, "Product is required"),
+    productName: z.enum(['RAQUETA', 'PELOTA', 'RED', 'ZAPATILLA'], {
+      required_error: "Product name is required"
+    }).optional(),
+    category: z.enum(['PROFESIONAL', 'ENTRENAMIENTO', 'RECREATIVA'], {
+      required_error: "Category is required"
+    }).optional(),
     quantity: z.number().min(1, "Quantity must be at least 1"),
   })).min(1, "At least one product is required"),
   
@@ -56,12 +61,9 @@ export default function NuevaOrdenPage() {
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false)
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("")
   const [submitError, setSubmitError] = useState<string>("")
-  
   // tRPC queries and mutations
-  const { data: products, isLoading: productsLoading } = api.product.getActive.useQuery()
   const { data: customers } = api.customer.getAll.useQuery()
   const createOrderMutation = api.order.create.useMutation()
-  
   
   // Form setup
   const form = useForm<OrderFormData>({
@@ -77,7 +79,7 @@ export default function NuevaOrdenPage() {
       country: "Colombia",
       taxId: "",
       companyName: "",
-      orderItems: [{ productId: "", quantity: 1 }],
+      orderItems: [{ productName: undefined, category: undefined, quantity: 1 }],
       notes: "",
       customerNotes: "",
       shippingAddress: "",
@@ -92,6 +94,36 @@ export default function NuevaOrdenPage() {
     name: "orderItems",
   })
   
+  // Watch form values for order summary
+  const watchedOrderItems = form.watch("orderItems")
+  const watchedShippingCost = form.watch("shippingCost") 
+  const watchedDiscount = form.watch("discount")
+  
+  // Calculate order summary (simplified without prices for now)
+  const orderSummary = useMemo(() => {
+    const orderItems = watchedOrderItems || []
+    const shippingCost = watchedShippingCost || 0
+    const discount = watchedDiscount || 0
+    
+    let totalItems = 0
+    
+    orderItems.forEach((item) => {
+      if (item.productName && item.category && item.quantity > 0) {
+        totalItems += item.quantity
+      }
+    })
+    
+    const total = shippingCost - discount
+    
+    return {
+      subtotal: 0, // Will be calculated on server
+      shippingCost,
+      discount,
+      total: Math.max(0, total),
+      totalItems
+    }
+  }, [watchedOrderItems, watchedShippingCost, watchedDiscount])
+  
   // Form submission handler
   const onSubmit = async (data: OrderFormData) => {
     setIsSubmitting(true)
@@ -104,13 +136,13 @@ export default function NuevaOrdenPage() {
       return
     }
 
-    // Validate that all order items have valid product IDs
+    // Validate that all order items have valid data
     const validOrderItems = data.orderItems.filter(item => {
-      return item.productId && item.productId.trim() !== "" && item.quantity > 0
+      return item.productName && item.category && item.quantity > 0
     })
     
     if (validOrderItems.length === 0) {
-      setSubmitError("Debe seleccionar al menos un producto para la orden")
+      setSubmitError("Debe completar al menos un producto para la orden")
       setIsSubmitting(false)
       return
     }
@@ -386,73 +418,166 @@ export default function NuevaOrdenPage() {
             <CardTitle>Productos</CardTitle>
             <CardDescription>
               Agregue los productos a la orden. Debe incluir al menos un producto.
+              <br />
+              <span className="text-xs text-muted-foreground mt-1 block">
+                Tipos disponibles: 🎾 Raqueta, ⚽ Pelota, 🥅 Red, 👟 Zapatilla | Categorías: 🏆 Profesional, 💪 Entrenamiento, 🎯 Recreativa
+              </span>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {fields.map((field, index) => (
-              <div key={field.id} className="flex gap-4 items-end">
-                <div className="flex-1 space-y-2">
-                  <Label>Producto *</Label>
-                  <Select
-                    value={form.watch(`orderItems.${index}.productId`) || ""}
-                    onValueChange={(value) => {
-                      if (value && value.trim() !== "") {
-                        form.setValue(`orderItems.${index}.productId`, value)
-                        form.clearErrors(`orderItems.${index}.productId`)
-                      }
-                    }}
-                    disabled={productsLoading}
+              <div key={field.id} className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Producto #{index + 1}</h4>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => remove(index)}
+                    disabled={fields.length === 1}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder={productsLoading ? "Cargando productos..." : "Seleccionar producto"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products?.map((product) => (
-                        <SelectItem key={product.id} value={product.id}>
-                          {product.name} - ${product.price.toString()} 
-                          {product.availableAmount > 0 ? ` (Stock: ${product.availableAmount})` : " (Sin stock)"}
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Product Name Selection */}
+                  <div className="space-y-2">
+                    <Label>Tipo de Producto *</Label>
+                    <Select
+                      value={form.watch(`orderItems.${index}.productName`) || ""}
+                      onValueChange={(value) => {
+                        form.setValue(`orderItems.${index}.productName`, value as any)
+                        form.clearErrors(`orderItems.${index}.productName`)
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar producto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="RAQUETA">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🎾</span>
+                            <span>Raqueta</span>
+                          </div>
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {form.formState.errors.orderItems?.[index]?.productId && (
-                    <p className="text-sm text-red-500">
-                      {form.formState.errors.orderItems[index]?.productId?.message}
-                    </p>
-                  )}
+                        <SelectItem value="PELOTA">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">⚽</span>
+                            <span>Pelota</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="RED">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🥅</span>
+                            <span>Red</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="ZAPATILLA">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">👟</span>
+                            <span>Zapatilla</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.orderItems?.[index]?.productName && (
+                      <p className="text-sm text-red-500">
+                        {form.formState.errors.orderItems[index]?.productName?.message}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Category Selection */}
+                  <div className="space-y-2">
+                    <Label>Categoría *</Label>
+                    <Select
+                      value={form.watch(`orderItems.${index}.category`) || ""}
+                      onValueChange={(value) => {
+                        form.setValue(`orderItems.${index}.category`, value as any)
+                        form.clearErrors(`orderItems.${index}.category`)
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PROFESIONAL">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🏆</span>
+                            <span>Profesional</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="ENTRENAMIENTO">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">💪</span>
+                            <span>Entrenamiento</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="RECREATIVA">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🎯</span>
+                            <span>Recreativa</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.orderItems?.[index]?.category && (
+                      <p className="text-sm text-red-500">
+                        {form.formState.errors.orderItems[index]?.category?.message}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Quantity Input */}
+                  <div className="space-y-2">
+                    <Label>Cantidad *</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      {...form.register(`orderItems.${index}.quantity`, { valueAsNumber: true })}
+                      placeholder="1"
+                      className="text-center"
+                    />
+                    {form.formState.errors.orderItems?.[index]?.quantity && (
+                      <p className="text-sm text-red-500">
+                        {form.formState.errors.orderItems[index]?.quantity?.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 
-                <div className="w-24 space-y-2">
-                  <Label>Cantidad *</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    {...form.register(`orderItems.${index}.quantity`, { valueAsNumber: true })}
-                    placeholder="1"
-                  />
-                  {form.formState.errors.orderItems?.[index]?.quantity && (
-                    <p className="text-sm text-red-500">
-                      {form.formState.errors.orderItems[index]?.quantity?.message}
-                    </p>
-                  )}
-                </div>
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => remove(index)}
-                  disabled={fields.length === 1}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {/* Product Summary */}
+                {form.watch(`orderItems.${index}.productName`) && form.watch(`orderItems.${index}.category`) && (
+                  <div className="bg-background p-3 rounded border">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-lg">
+                        {form.watch(`orderItems.${index}.productName`) === 'RAQUETA' && '🎾'}
+                        {form.watch(`orderItems.${index}.productName`) === 'PELOTA' && '⚽'}
+                        {form.watch(`orderItems.${index}.productName`) === 'RED' && '🥅'}
+                        {form.watch(`orderItems.${index}.productName`) === 'ZAPATILLA' && '👟'}
+                      </span>
+                      <span className="font-medium capitalize">
+                        {form.watch(`orderItems.${index}.productName`)?.toLowerCase()}
+                      </span>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-muted-foreground capitalize">
+                        {form.watch(`orderItems.${index}.category`)?.toLowerCase()}
+                      </span>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="font-medium">
+                        Cantidad: {form.watch(`orderItems.${index}.quantity`) || 1}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
             
             <Button
               type="button"
               variant="outline"
-              onClick={() => append({ productId: "", quantity: 1 })}
+              onClick={() => append({ productName: undefined, category: undefined, quantity: 1 })}
               className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -541,6 +666,58 @@ export default function NuevaOrdenPage() {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Order Summary Section */}
+        {orderSummary.totalItems > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Resumen de la Orden
+              </CardTitle>
+              <CardDescription>
+                Revise los detalles de su orden antes de crear.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="text-sm font-medium">Total de productos:</span>
+                  <span className="text-sm">{orderSummary.totalItems} items</span>
+                </div>
+                
+                <div className="flex justify-between items-center py-2 text-muted-foreground">
+                  <span className="text-sm">Subtotal:</span>
+                  <span className="text-sm">Se calculará en el servidor</span>
+                </div>
+                
+                {orderSummary.shippingCost > 0 && (
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm">Costo de envío:</span>
+                    <span className="text-sm">${orderSummary.shippingCost.toFixed(2)}</span>
+                  </div>
+                )}
+                
+                {orderSummary.discount > 0 && (
+                  <div className="flex justify-between items-center py-2 text-green-600">
+                    <span className="text-sm">Descuento:</span>
+                    <span className="text-sm">-${orderSummary.discount.toFixed(2)}</span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between items-center py-3 border-t border-b font-semibold text-lg">
+                  <span>Total estimado:</span>
+                  <span className="text-primary">
+                    {orderSummary.shippingCost > 0 || orderSummary.discount > 0 
+                      ? `$${orderSummary.total.toFixed(2)} + productos` 
+                      : "Se calculará en el servidor"
+                    }
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         {/* Error Message */}
         {submitError && (

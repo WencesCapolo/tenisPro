@@ -11,11 +11,19 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Product Type Enum
+// Product Type Enum (now used as category)
 enum ProductType {
   PROFESIONAL
   ENTRENAMIENTO
   RECREATIVA
+}
+
+// Product Name Enum
+enum ProductName {
+  RAQUETA
+  PELOTA
+  RED
+  ZAPATILLA
 }
 
 enum OrderStatus {
@@ -37,11 +45,11 @@ enum NotificationType {
 // Product Model
 model Product {
   id              String      @id @default(cuid())
-  name            ProductType // Using ProductType enum as the product name/identifier
+  name            ProductName // Using ProductName enum as the product name/identifier
   description     String?
   price           Decimal     @db.Decimal(10, 2)
   availableAmount Int         @map("available_amount")
-  category        String?     // Additional categorization (e.g., "Raquetas", "Pelotas", "Accesorios")
+  category        ProductType // Using ProductType enum as category (PROFESIONAL, ENTRENAMIENTO, RECREATIVA)
   brand           String?     // Brand of the product
   model           String?     // Model/version of the product
   sku             String?     @unique // Stock Keeping Unit

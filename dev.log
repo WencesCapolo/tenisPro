@@ -1,0 +1,119 @@
+
+> tenispro@0.1.0 dev
+> next dev
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /home/wences/pnpm-lock.yaml as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * /home/wences/GitHub/GitHub/tenisPro/pnpm-lock.yaml
+
+   ▲ Next.js 15.5.3
+   - Local:        http://localhost:3000
+   - Network:      http://10.255.255.254:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 3.6s
+ ○ Compiling /api/trpc/[trpc] ...
+ ✓ Compiled /api/trpc/[trpc] in 4.8s (476 modules)
+ ○ Compiling /dashboard ...
+ GET /api/trpc/order.getAll?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22page%22%3A1%2C%22limit%22%3A5%7D%7D%7D 200 in 6625ms
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."orders"."id" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 OFFSET $2) AS "sub"
+prisma:query COMMIT
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."orders"."id", "public"."orders"."order_number", "public"."orders"."order_status"::text, "public"."orders"."customer_id", "public"."orders"."total_amount", "public"."orders"."subtotal", "public"."orders"."tax_amount", "public"."orders"."shipping_cost", "public"."orders"."discount", "public"."orders"."notes", "public"."orders"."customer_notes", "public"."orders"."shipping_address", "public"."orders"."billing_address", "public"."orders"."tracking_number", "public"."orders"."shipped_at", "public"."orders"."delivered_at", "public"."orders"."cancelled_at", "public"."orders"."cancellation_reason", "public"."orders"."is_deleted", "public"."orders"."created_at", "public"."orders"."updated_at" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 ORDER BY "public"."orders"."created_at" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."customers"."id", "public"."customers"."name", "public"."customers"."email", "public"."customers"."phone", "public"."customers"."address", "public"."customers"."city", "public"."customers"."state", "public"."customers"."postal_code", "public"."customers"."country", "public"."customers"."tax_id", "public"."customers"."company_name", "public"."customers"."is_active", "public"."customers"."is_deleted", "public"."customers"."created_at", "public"."customers"."updated_at" FROM "public"."customers" WHERE "public"."customers"."id" IN ($1,$2,$3,$4) OFFSET $5
+prisma:query SELECT "public"."order_items"."id", "public"."order_items"."order_id", "public"."order_items"."product_id", "public"."order_items"."quantity", "public"."order_items"."unit_price", "public"."order_items"."total_price", "public"."order_items"."discount", "public"."order_items"."created_at", "public"."order_items"."updated_at" FROM "public"."order_items" WHERE "public"."order_items"."order_id" IN ($1,$2,$3,$4,$5) OFFSET $6
+prisma:query SELECT "public"."products"."id", "public"."products"."name"::text, "public"."products"."description", "public"."products"."price", "public"."products"."available_amount", "public"."products"."category"::text, "public"."products"."brand", "public"."products"."model", "public"."products"."sku", "public"."products"."image_url", "public"."products"."is_active", "public"."products"."is_deleted", "public"."products"."created_at", "public"."products"."updated_at" FROM "public"."products" WHERE "public"."products"."id" IN ($1,$2,$3,$4,$5,$6,$7) OFFSET $8
+prisma:query COMMIT
+ ✓ Compiled /ordenes in 13.5s (1356 modules)
+ GET /ordenes 200 in 12456ms
+prisma:query SELECT 1
+prisma:query SELECT 1
+prisma:query BEGIN
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query DEALLOCATE ALL
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."orders"."id" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 OFFSET $2) AS "sub"
+prisma:query SELECT "public"."orders"."id", "public"."orders"."order_number", "public"."orders"."order_status"::text, "public"."orders"."customer_id", "public"."orders"."total_amount", "public"."orders"."subtotal", "public"."orders"."tax_amount", "public"."orders"."shipping_cost", "public"."orders"."discount", "public"."orders"."notes", "public"."orders"."customer_notes", "public"."orders"."shipping_address", "public"."orders"."billing_address", "public"."orders"."tracking_number", "public"."orders"."shipped_at", "public"."orders"."delivered_at", "public"."orders"."cancelled_at", "public"."orders"."cancellation_reason", "public"."orders"."is_deleted", "public"."orders"."created_at", "public"."orders"."updated_at" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 ORDER BY "public"."orders"."created_at" DESC LIMIT $2 OFFSET $3
+prisma:query COMMIT
+prisma:query SELECT "public"."customers"."id", "public"."customers"."name", "public"."customers"."email", "public"."customers"."phone", "public"."customers"."address", "public"."customers"."city", "public"."customers"."state", "public"."customers"."postal_code", "public"."customers"."country", "public"."customers"."tax_id", "public"."customers"."company_name", "public"."customers"."is_active", "public"."customers"."is_deleted", "public"."customers"."created_at", "public"."customers"."updated_at" FROM "public"."customers" WHERE "public"."customers"."id" IN ($1,$2,$3,$4,$5,$6,$7) OFFSET $8
+prisma:query SELECT "public"."order_items"."id", "public"."order_items"."order_id", "public"."order_items"."product_id", "public"."order_items"."quantity", "public"."order_items"."unit_price", "public"."order_items"."total_price", "public"."order_items"."discount", "public"."order_items"."created_at", "public"."order_items"."updated_at" FROM "public"."order_items" WHERE "public"."order_items"."order_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9) OFFSET $10
+prisma:query SELECT "public"."products"."id", "public"."products"."name"::text, "public"."products"."description", "public"."products"."price", "public"."products"."available_amount", "public"."products"."category"::text, "public"."products"."brand", "public"."products"."model", "public"."products"."sku", "public"."products"."image_url", "public"."products"."is_active", "public"."products"."is_deleted", "public"."products"."created_at", "public"."products"."updated_at" FROM "public"."products" WHERE "public"."products"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) OFFSET $12
+prisma:query COMMIT
+ GET /api/trpc/order.getAll?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22page%22%3A1%2C%22limit%22%3A10%7D%7D%7D 200 in 2862ms
+ ○ Compiling /nueva-orden ...
+ ✓ Compiled /nueva-orden in 5.7s (1385 modules)
+ GET /nueva-orden 200 in 5858ms
+ GET /nueva-orden 200 in 68ms
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."customers"."id", "public"."customers"."name", "public"."customers"."email", "public"."customers"."phone", "public"."customers"."address", "public"."customers"."city", "public"."customers"."state", "public"."customers"."postal_code", "public"."customers"."country", "public"."customers"."tax_id", "public"."customers"."company_name", "public"."customers"."is_active", "public"."customers"."is_deleted", "public"."customers"."created_at", "public"."customers"."updated_at" FROM "public"."customers" WHERE "public"."customers"."is_deleted" = $1 ORDER BY "public"."customers"."created_at" DESC OFFSET $2
+ GET /api/trpc/customer.getAll?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D 200 in 1512ms
+prisma:query COMMIT
+ GET /nueva-orden 200 in 1778ms
+ ○ Compiling /nuevo-cliente ...
+ ✓ Compiled /nuevo-cliente in 5.9s (1394 modules)
+ GET /nuevo-cliente 200 in 6186ms
+ GET /nuevo-cliente 200 in 90ms
+ GET /dashboard 200 in 96ms
+prisma:query SELECT 1
+prisma:query SELECT 1
+prisma:query BEGIN
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query DEALLOCATE ALL
+ GET /dashboard 200 in 32ms
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."orders"."id" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 OFFSET $2) AS "sub"
+prisma:query SELECT "public"."orders"."id", "public"."orders"."order_number", "public"."orders"."order_status"::text, "public"."orders"."customer_id", "public"."orders"."total_amount", "public"."orders"."subtotal", "public"."orders"."tax_amount", "public"."orders"."shipping_cost", "public"."orders"."discount", "public"."orders"."notes", "public"."orders"."customer_notes", "public"."orders"."shipping_address", "public"."orders"."billing_address", "public"."orders"."tracking_number", "public"."orders"."shipped_at", "public"."orders"."delivered_at", "public"."orders"."cancelled_at", "public"."orders"."cancellation_reason", "public"."orders"."is_deleted", "public"."orders"."created_at", "public"."orders"."updated_at" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 ORDER BY "public"."orders"."created_at" DESC LIMIT $2 OFFSET $3
+prisma:query COMMIT
+prisma:query SELECT "public"."customers"."id", "public"."customers"."name", "public"."customers"."email", "public"."customers"."phone", "public"."customers"."address", "public"."customers"."city", "public"."customers"."state", "public"."customers"."postal_code", "public"."customers"."country", "public"."customers"."tax_id", "public"."customers"."company_name", "public"."customers"."is_active", "public"."customers"."is_deleted", "public"."customers"."created_at", "public"."customers"."updated_at" FROM "public"."customers" WHERE "public"."customers"."id" IN ($1,$2,$3,$4,$5,$6,$7) OFFSET $8
+prisma:query BEGIN
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."order_items"."id", "public"."order_items"."order_id", "public"."order_items"."product_id", "public"."order_items"."quantity", "public"."order_items"."unit_price", "public"."order_items"."total_price", "public"."order_items"."discount", "public"."order_items"."created_at", "public"."order_items"."updated_at" FROM "public"."order_items" WHERE "public"."order_items"."order_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9) OFFSET $10
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."orders"."id" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 OFFSET $2) AS "sub"
+prisma:query SELECT "public"."orders"."id", "public"."orders"."order_number", "public"."orders"."order_status"::text, "public"."orders"."customer_id", "public"."orders"."total_amount", "public"."orders"."subtotal", "public"."orders"."tax_amount", "public"."orders"."shipping_cost", "public"."orders"."discount", "public"."orders"."notes", "public"."orders"."customer_notes", "public"."orders"."shipping_address", "public"."orders"."billing_address", "public"."orders"."tracking_number", "public"."orders"."shipped_at", "public"."orders"."delivered_at", "public"."orders"."cancelled_at", "public"."orders"."cancellation_reason", "public"."orders"."is_deleted", "public"."orders"."created_at", "public"."orders"."updated_at" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 ORDER BY "public"."orders"."created_at" DESC LIMIT $2 OFFSET $3
+prisma:query COMMIT
+prisma:query SELECT "public"."products"."id", "public"."products"."name"::text, "public"."products"."description", "public"."products"."price", "public"."products"."available_amount", "public"."products"."category"::text, "public"."products"."brand", "public"."products"."model", "public"."products"."sku", "public"."products"."image_url", "public"."products"."is_active", "public"."products"."is_deleted", "public"."products"."created_at", "public"."products"."updated_at" FROM "public"."products" WHERE "public"."products"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) OFFSET $12
+prisma:query COMMIT
+prisma:query SELECT "public"."customers"."id", "public"."customers"."name", "public"."customers"."email", "public"."customers"."phone", "public"."customers"."address", "public"."customers"."city", "public"."customers"."state", "public"."customers"."postal_code", "public"."customers"."country", "public"."customers"."tax_id", "public"."customers"."company_name", "public"."customers"."is_active", "public"."customers"."is_deleted", "public"."customers"."created_at", "public"."customers"."updated_at" FROM "public"."customers" WHERE "public"."customers"."id" IN ($1,$2,$3,$4,$5,$6,$7) OFFSET $8
+prisma:query SELECT "public"."order_items"."id", "public"."order_items"."order_id", "public"."order_items"."product_id", "public"."order_items"."quantity", "public"."order_items"."unit_price", "public"."order_items"."total_price", "public"."order_items"."discount", "public"."order_items"."created_at", "public"."order_items"."updated_at" FROM "public"."order_items" WHERE "public"."order_items"."order_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9) OFFSET $10
+prisma:query SELECT "public"."products"."id", "public"."products"."name"::text, "public"."products"."description", "public"."products"."price", "public"."products"."available_amount", "public"."products"."category"::text, "public"."products"."brand", "public"."products"."model", "public"."products"."sku", "public"."products"."image_url", "public"."products"."is_active", "public"."products"."is_deleted", "public"."products"."created_at", "public"."products"."updated_at" FROM "public"."products" WHERE "public"."products"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) OFFSET $12
+prisma:query COMMIT
+ GET /api/trpc/order.getAll,order.getAll?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22page%22%3A1%2C%22limit%22%3A1000%7D%7D%2C%221%22%3A%7B%22json%22%3A%7B%22page%22%3A1%2C%22limit%22%3A10%7D%7D%7D 200 in 3170ms
+ GET /dashboard 200 in 494ms
+prisma:query SELECT 1
+prisma:query SELECT 1
+prisma:query SELECT 1
+prisma:query SELECT 1
+prisma:query BEGIN
+prisma:query BEGIN
+prisma:query BEGIN
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query DEALLOCATE ALL
+prisma:query DEALLOCATE ALL
+prisma:query DEALLOCATE ALL
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."orders"."id" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 OFFSET $2) AS "sub"
+prisma:query SELECT "public"."orders"."id", "public"."orders"."order_number", "public"."orders"."order_status"::text, "public"."orders"."customer_id", "public"."orders"."total_amount", "public"."orders"."subtotal", "public"."orders"."tax_amount", "public"."orders"."shipping_cost", "public"."orders"."discount", "public"."orders"."notes", "public"."orders"."customer_notes", "public"."orders"."shipping_address", "public"."orders"."billing_address", "public"."orders"."tracking_number", "public"."orders"."shipped_at", "public"."orders"."delivered_at", "public"."orders"."cancelled_at", "public"."orders"."cancellation_reason", "public"."orders"."is_deleted", "public"."orders"."created_at", "public"."orders"."updated_at" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 ORDER BY "public"."orders"."created_at" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."orders"."id" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 OFFSET $2) AS "sub"
+prisma:query SELECT "public"."orders"."id", "public"."orders"."order_number", "public"."orders"."order_status"::text, "public"."orders"."customer_id", "public"."orders"."total_amount", "public"."orders"."subtotal", "public"."orders"."tax_amount", "public"."orders"."shipping_cost", "public"."orders"."discount", "public"."orders"."notes", "public"."orders"."customer_notes", "public"."orders"."shipping_address", "public"."orders"."billing_address", "public"."orders"."tracking_number", "public"."orders"."shipped_at", "public"."orders"."delivered_at", "public"."orders"."cancelled_at", "public"."orders"."cancellation_reason", "public"."orders"."is_deleted", "public"."orders"."created_at", "public"."orders"."updated_at" FROM "public"."orders" WHERE "public"."orders"."is_deleted" = $1 ORDER BY "public"."orders"."created_at" DESC LIMIT $2 OFFSET $3
+prisma:query COMMIT
+prisma:query COMMIT
+prisma:query SELECT "public"."customers"."id", "public"."customers"."name", "public"."customers"."email", "public"."customers"."phone", "public"."customers"."address", "public"."customers"."city", "public"."customers"."state", "public"."customers"."postal_code", "public"."customers"."country", "public"."customers"."tax_id", "public"."customers"."company_name", "public"."customers"."is_active", "public"."customers"."is_deleted", "public"."customers"."created_at", "public"."customers"."updated_at" FROM "public"."customers" WHERE "public"."customers"."id" IN ($1,$2,$3,$4,$5,$6,$7) OFFSET $8
+prisma:query SELECT "public"."customers"."id", "public"."customers"."name", "public"."customers"."email", "public"."customers"."phone", "public"."customers"."address", "public"."customers"."city", "public"."customers"."state", "public"."customers"."postal_code", "public"."customers"."country", "public"."customers"."tax_id", "public"."customers"."company_name", "public"."customers"."is_active", "public"."customers"."is_deleted", "public"."customers"."created_at", "public"."customers"."updated_at" FROM "public"."customers" WHERE "public"."customers"."id" IN ($1,$2,$3,$4,$5,$6,$7) OFFSET $8
+prisma:query SELECT "public"."order_items"."id", "public"."order_items"."order_id", "public"."order_items"."product_id", "public"."order_items"."quantity", "public"."order_items"."unit_price", "public"."order_items"."total_price", "public"."order_items"."discount", "public"."order_items"."created_at", "public"."order_items"."updated_at" FROM "public"."order_items" WHERE "public"."order_items"."order_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9) OFFSET $10
+prisma:query SELECT "public"."order_items"."id", "public"."order_items"."order_id", "public"."order_items"."product_id", "public"."order_items"."quantity", "public"."order_items"."unit_price", "public"."order_items"."total_price", "public"."order_items"."discount", "public"."order_items"."created_at", "public"."order_items"."updated_at" FROM "public"."order_items" WHERE "public"."order_items"."order_id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9) OFFSET $10
+prisma:query SELECT "public"."products"."id", "public"."products"."name"::text, "public"."products"."description", "public"."products"."price", "public"."products"."available_amount", "public"."products"."category"::text, "public"."products"."brand", "public"."products"."model", "public"."products"."sku", "public"."products"."image_url", "public"."products"."is_active", "public"."products"."is_deleted", "public"."products"."created_at", "public"."products"."updated_at" FROM "public"."products" WHERE "public"."products"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) OFFSET $12
+prisma:query SELECT "public"."products"."id", "public"."products"."name"::text, "public"."products"."description", "public"."products"."price", "public"."products"."available_amount", "public"."products"."category"::text, "public"."products"."brand", "public"."products"."model", "public"."products"."sku", "public"."products"."image_url", "public"."products"."is_active", "public"."products"."is_deleted", "public"."products"."created_at", "public"."products"."updated_at" FROM "public"."products" WHERE "public"."products"."id" IN ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) OFFSET $12
+prisma:query COMMIT
+ GET /api/trpc/order.getAll,order.getAll?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22page%22%3A1%2C%22limit%22%3A1000%7D%7D%2C%221%22%3A%7B%22json%22%3A%7B%22page%22%3A1%2C%22limit%22%3A10%7D%7D%7D 200 in 2175ms
+prisma:query COMMIT
+ GET /dashboard 200 in 39ms

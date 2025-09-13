@@ -1,7 +1,7 @@
 import { ProductRepository } from './product.repository';
 import { Result, ok, err } from '../../../lib/result';
 import { AppError, createError } from '../../../lib/errors';
-import { Product, ProductType } from '@prisma/client';
+import { Product, ProductType, ProductName } from '@prisma/client';
 import {
   CreateProductInput,
   CreateProductData,
@@ -261,7 +261,7 @@ export class ProductService {
     return ok(result.data);
   }
 
-  async getProductsByCategory(category: string): Promise<Result<Product[], AppError>> {
+  async getProductsByCategory(category: ProductType): Promise<Result<Product[], AppError>> {
     const result = await this.productRepository.findMany({
       category,
       isActive: true
@@ -274,9 +274,22 @@ export class ProductService {
     return ok(result.data);
   }
 
+  async getProductsByName(name: ProductName): Promise<Result<Product[], AppError>> {
+    const result = await this.productRepository.findMany({
+      name: name,
+      isActive: true
+    });
+    
+    if (!result.success) {
+      return err((result as { success: false; error: AppError }).error);
+    }
+
+    return ok(result.data);
+  }
+
   async getProductsByType(type: ProductType): Promise<Result<Product[], AppError>> {
     const result = await this.productRepository.findMany({
-      name: type,
+      category: type,
       isActive: true
     });
     

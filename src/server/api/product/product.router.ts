@@ -5,6 +5,7 @@ import { unwrap } from '../trpc-utils';
 import { z } from 'zod';
 import { 
   ProductTypeSchema, 
+  ProductNameSchema,
   CreateProductSchema, 
   UpdateProductSchema, 
   ProductFiltersSchema 
@@ -38,12 +39,19 @@ export const productRouter = createTRPCRouter({
 
   // Get products by category
   getByCategory: publicProcedure
-    .input(z.object({ category: z.string() }))
+    .input(z.object({ category: ProductTypeSchema }))
     .query(async ({ input }) => {
       return unwrap(await productService.getProductsByCategory(input.category));
     }),
 
-  // Get products by type
+  // Get products by name
+  getByName: publicProcedure
+    .input(z.object({ name: ProductNameSchema }))
+    .query(async ({ input }) => {
+      return unwrap(await productService.getProductsByName(input.name));
+    }),
+
+  // Get products by type (category)
   getByType: publicProcedure
     .input(z.object({ type: ProductTypeSchema }))
     .query(async ({ input }) => {

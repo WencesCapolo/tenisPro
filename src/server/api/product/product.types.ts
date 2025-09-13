@@ -3,18 +3,19 @@
  * Contains interfaces and types used across repository, service, and router layers
  */
 
-import { Product, ProductType } from '@prisma/client';
+import { Product, ProductType, ProductName } from '@prisma/client';
 import { z } from 'zod';
 
 // Input validation schemas
 const ProductTypeSchema = z.enum(['PROFESIONAL', 'ENTRENAMIENTO', 'RECREATIVA']);
+const ProductNameSchema = z.enum(['RAQUETA', 'PELOTA', 'RED', 'ZAPATILLA']);
 
 const CreateProductSchema = z.object({
-  name: ProductTypeSchema,
+  name: ProductNameSchema,
   description: z.string().optional(),
   price: z.number().min(0),
   availableAmount: z.number().int().min(0),
-  category: z.string().optional(),
+  category: ProductTypeSchema,
   brand: z.string().optional(),
   model: z.string().optional(),
   sku: z.string().optional(),
@@ -25,7 +26,7 @@ const UpdateProductSchema = z.object({
   description: z.string().optional(),
   price: z.number().min(0).optional(),
   availableAmount: z.number().int().min(0).optional(),
-  category: z.string().optional(),
+  category: ProductTypeSchema.optional(),
   brand: z.string().optional(),
   model: z.string().optional(),
   imageUrl: z.string().url().optional(),
@@ -33,23 +34,23 @@ const UpdateProductSchema = z.object({
 });
 
 const ProductFiltersSchema = z.object({
-  name: ProductTypeSchema.optional(),
-  category: z.string().optional(),
+  name: ProductNameSchema.optional(),
+  category: ProductTypeSchema.optional(),
   brand: z.string().optional(),
   isActive: z.boolean().optional(),
   inStock: z.boolean().optional(),
 });
 
 // Export schemas for use in router
-export { ProductTypeSchema, CreateProductSchema, UpdateProductSchema, ProductFiltersSchema };
+export { ProductTypeSchema, ProductNameSchema, CreateProductSchema, UpdateProductSchema, ProductFiltersSchema };
 
 // Repository layer interfaces
 export interface CreateProductData {
-  name: ProductType;
+  name: ProductName;
   description?: string;
   price: number;
   availableAmount: number;
-  category?: string;
+  category: ProductType;
   brand?: string;
   model?: string;
   sku?: string;
@@ -60,7 +61,7 @@ export interface UpdateProductData {
   description?: string;
   price?: number;
   availableAmount?: number;
-  category?: string;
+  category?: ProductType;
   brand?: string;
   model?: string;
   imageUrl?: string;
@@ -68,8 +69,8 @@ export interface UpdateProductData {
 }
 
 export interface ProductFilters {
-  name?: ProductType;
-  category?: string;
+  name?: ProductName;
+  category?: ProductType;
   brand?: string;
   isActive?: boolean;
   inStock?: boolean;
@@ -81,8 +82,8 @@ export type CreateProductInput = z.infer<typeof CreateProductSchema>;
 export type UpdateProductInput = z.infer<typeof UpdateProductSchema>;
 
 export interface ProductListFilters {
-  name?: ProductType;
-  category?: string;
+  name?: ProductName;
+  category?: ProductType;
   brand?: string;
   isActive?: boolean;
   inStock?: boolean;
