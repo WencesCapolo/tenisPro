@@ -14,6 +14,7 @@ import {
   UpdateOrderSchema,
   OrderFiltersSchema,
   PaginationSchema,
+  IdSchema,
 } from './order.types';
 
 // Initialize service with repository
@@ -23,7 +24,7 @@ const orderService = new OrderService(orderRepository);
 export const orderRouter = createTRPCRouter({
   // Get order by ID
   getById: publicProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: IdSchema }))
     .query(async ({ input }) => {
       return unwrap(await orderService.getById(input.id));
     }),
@@ -50,7 +51,7 @@ export const orderRouter = createTRPCRouter({
   // Get orders by customer ID
   getByCustomerId: publicProcedure
     .input(z.object({ 
-      customerId: z.string().uuid(),
+      customerId: IdSchema,
       page: z.number().int().min(1).default(1),
       limit: z.number().int().min(1).max(100).default(10),
     }))
@@ -75,7 +76,7 @@ export const orderRouter = createTRPCRouter({
   // Update existing order
   update: publicProcedure
     .input(z.object({
-      id: z.string().uuid(),
+      id: IdSchema,
       data: UpdateOrderSchema,
     }))
     .mutation(async ({ input }) => {
@@ -85,7 +86,7 @@ export const orderRouter = createTRPCRouter({
   // Update order status
   updateStatus: publicProcedure
     .input(z.object({
-      id: z.string().uuid(),
+      id: IdSchema,
       status: OrderStatusSchema,
       reason: z.string().optional(),
     }))
@@ -96,7 +97,7 @@ export const orderRouter = createTRPCRouter({
   // Cancel order
   cancel: publicProcedure
     .input(z.object({
-      id: z.string().uuid(),
+      id: IdSchema,
       reason: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
@@ -105,7 +106,7 @@ export const orderRouter = createTRPCRouter({
 
   // Delete order (soft delete)
   delete: publicProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: IdSchema }))
     .mutation(async ({ input }) => {
       return unwrap(await orderService.delete(input.id));
     }),
