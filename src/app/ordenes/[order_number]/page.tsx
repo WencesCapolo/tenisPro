@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,14 +14,24 @@ import { OrderStatus, ProductName, ProductType } from "@prisma/client";
 import { OrderStatusSelect } from "@/components/OrderStatusSelect";
 
 interface OrderDetailPageProps {
-  params: {
+  params: Promise<{
     order_number: string;
-  };
+  }>;
 }
 
 export default function OrderDetailPage({ params }: OrderDetailPageProps) {
+  const [orderNumber, setOrderNumber] = useState<string>("");
+
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setOrderNumber(resolvedParams.order_number);
+    });
+  }, [params]);
+
   const { data: order, isLoading, error } = api.order.getByOrderNumber.useQuery({
-    orderNumber: params.order_number,
+    orderNumber: orderNumber,
+  }, {
+    enabled: !!orderNumber,
   });
 
   const getStatusVariant = (status: OrderStatus) => {

@@ -15,11 +15,13 @@ import { Search, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { OrderWithRelations } from "@/server/api/order/order.types";
 import { OrderStatus } from "@prisma/client";
 import { format } from "date-fns";
 import { OrderStatusSelect } from "@/components/OrderStatusSelect";
+import { hasProfessionalTennisBall } from "@/lib/order-utils";
+import { ProfessionalTennisBallBadge } from "@/components/ui/golden-badge";
 
 interface OrdersTableProps {
   filters?: {
@@ -39,6 +41,8 @@ interface OrdersTableProps {
 
 // Component for a regular order row
 const RegularOrderRow = ({ order }: { order: OrderWithRelations }) => {
+  const isProfessionalBall = hasProfessionalTennisBall(order);
+
   const getStatusVariant = (status: OrderStatus) => {
     switch (status) {
       case "DESPACHADO":
@@ -79,8 +83,13 @@ const RegularOrderRow = ({ order }: { order: OrderWithRelations }) => {
   }
 
   return (
-    <TableRow className="hover:bg-muted/20 transition-all duration-200 group border-b border-border/30">
-      <TableCell className="font-semibold text-foreground">{order.orderNumber}</TableCell>
+    <TableRow className={`hover:bg-muted/20 transition-all duration-200 group border-b border-border/30 ${isProfessionalBall ? 'bg-gradient-to-r from-yellow-50/50 to-transparent' : ''}`}>
+      <TableCell className="font-semibold text-foreground">
+        <div className="flex items-center gap-2">
+          {order.orderNumber}
+          {isProfessionalBall && <ProfessionalTennisBallBadge />}
+        </div>
+      </TableCell>
       <TableCell className="font-medium text-foreground">{order.customer.name}</TableCell>
       <TableCell className="text-muted-foreground">{order.customer.email}</TableCell>
       <TableCell className="text-muted-foreground">{getProductSummary(order.orderItems)}</TableCell>
@@ -113,7 +122,7 @@ const RegularOrderRow = ({ order }: { order: OrderWithRelations }) => {
 // Component for an expandable order row (for grouping by customer)
 const ExpandableOrderRow = ({ 
   customerName, 
-  orders 
+  orders
 }: { 
   customerName: string; 
   orders: OrderWithRelations[]; 
@@ -176,6 +185,8 @@ const ExpandableOrderRow = ({
         <TableCell className="text-right">${totalAmount.toFixed(2)}</TableCell>
       </TableRow>
       {isExpanded && orders.map(order => {
+        const isProfessionalBall = hasProfessionalTennisBall(order);
+
         const getProductSummary = (orderItems: typeof order.orderItems) => {
           if (orderItems.length === 0) return "Sin productos";
           if (orderItems.length === 1) {
@@ -186,30 +197,90 @@ const ExpandableOrderRow = ({
         };
 
         return (
-          <TableRow key={order.id} className="bg-muted/30">
-            <TableCell className="pl-8">{order.orderNumber}</TableCell>
-            <TableCell>{order.customer.name}</TableCell>
-            <TableCell>{order.customer.email}</TableCell>
-            <TableCell>{getProductSummary(order.orderItems)}</TableCell>
-            <TableCell>{format(new Date(order.createdAt), "MMM dd, yyyy")}</TableCell>
-            <TableCell>
-              <OrderStatusSelect
-                orderId={order.id}
-                currentStatus={order.orderStatus}
-              />
-            </TableCell>
-            <TableCell className="text-right">${Number(order.totalAmount).toFixed(2)}</TableCell>
-            <TableCell className="text-right">
-              <Button variant="ghost" asChild>
-                <Link href={`/ordenes/${order.orderNumber}`}>
-                  Ver Detalles
-                </Link>
-              </Button>
-            </TableCell>
-          </TableRow>
+          <ExpandedOrderRowItem
+            key={order.id}
+            order={order}
+            isProfessionalBall={isProfessionalBall}
+            getProductSummary={getProductSummary}
+          />
         );
       })}
     </>
+  );
+};
+
+// Component for individual expanded order row items
+const ExpandedOrderRowItem = ({
+  order,
+  isProfessionalBall,
+  getProductSummary
+}: {
+  order: OrderWithRelations;
+  isProfessionalBall: boolean;
+  getProductSummary: (orderItems: typeof order.orderItems) => string;
+}) => {
+
+  return (
+    <TableRow className={`bg-muted/30 ${isProfessionalBall ? 'bg-gradient-to-r from-yellow-100/50 to-muted/30' : ''}`}>
+      <TableCell className="pl-8">
+        <div className="flex items-center gap-2">
+          {order.orderNumber}
+          {isProfessionalBall && <ProfessionalTennisBallBadge className="scale-75" />}
+        </div>
+      </TableCell>
+      <TableCell>{order.customer.name}</TableCell>
+      <TableCell>{order.customer.email}</TableCell>
+      <TableCell>{getProductSummary(order.orderItems)}</TableCell>
+      <TableCell>{format(new Date(order.createdAt), "MMM dd, yyyy")}</TableCell>
+      <TableCell>
+        <OrderStatusSelect
+          orderId={order.id}
+          currentStatus={order.orderStatus}
+        />
+      </TableCell>
+      <TableCell className="text-right">${Number(order.totalAmount).toFixed(2)}</TableCell>
+      <TableCell className="text-right">
+        <Button variant="ghost" asChild>
+          <Link href={`/ordenes/${order.orderNumber}`}>
+            Ver Detalles
+          </Link>
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+};
+
+// Component for mobile order row items
+const MobileOrderRowItem = ({
+  order
+}: {
+  order: OrderWithRelations;
+}) => {
+  const isProfessionalBall = hasProfessionalTennisBall(order);
+
+  return (
+    <TableRow
+      className={`hover:bg-muted/50 transition-colors ${isProfessionalBall ? 'bg-gradient-to-r from-yellow-50/50 to-transparent' : ''}`}
+    >
+      <TableCell 
+        className="font-medium py-6 cursor-pointer"
+        onClick={() => window.location.href = `/ordenes/${order.orderNumber}`}
+      >
+        <div>
+          <div className="flex items-center gap-2 font-medium">
+            {order.orderNumber}
+            {isProfessionalBall && <ProfessionalTennisBallBadge className="scale-75" />}
+          </div>
+          <div className="text-sm text-muted-foreground">{order.customer.name}</div>
+        </div>
+      </TableCell>
+      <TableCell className="py-6">
+        <OrderStatusSelect
+          orderId={order.id}
+          currentStatus={order.orderStatus}
+        />
+      </TableCell>
+    </TableRow>
   );
 };
 
@@ -350,26 +421,10 @@ export function OrdersTable({ filters = {} }: OrdersTableProps) {
                 </TableRow>
               ) : (
                 filteredOrders.map((order) => (
-                  <TableRow
+                  <MobileOrderRowItem
                     key={order.id}
-                    className="hover:bg-muted/50 transition-colors"
-                  >
-                    <TableCell 
-                      className="font-medium py-6 cursor-pointer"
-                      onClick={() => window.location.href = `/ordenes/${order.orderNumber}`}
-                    >
-                      <div>
-                        <div className="font-medium">{order.orderNumber}</div>
-                        <div className="text-sm text-muted-foreground">{order.customer.name}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-6">
-                      <OrderStatusSelect
-                        orderId={order.id}
-                        currentStatus={order.orderStatus}
-                      />
-                    </TableCell>
-                  </TableRow>
+                    order={order}
+                  />
                 ))
               )}
             </TableBody>
